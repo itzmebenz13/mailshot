@@ -1,3 +1,8 @@
+// Ensure WebSocket support for Supabase Realtime in Node environments
+if (!globalThis.WebSocket) {
+  try { globalThis.WebSocket = require('ws'); } catch (e) {}
+}
+
 const express = require('express');
 const cron = require('node-cron');
 const crypto = require('crypto');

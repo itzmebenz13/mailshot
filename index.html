@@ -1436,6 +1436,7 @@
         <div style="display: flex; gap: 8px; margin-bottom: 16px;">
           <button class="pill-tab active" id="admTabAccounts" onclick="switchAdminTab('accounts')">Gmail Accounts</button>
           <button class="pill-tab" id="admTabAdd" onclick="switchAdminTab('add')">+ Add Gmail</button>
+          <button class="pill-tab" id="admTabConfig" onclick="switchAdminTab('config')">Backend URL</button>
         </div>
 
         <!-- Section: List Accounts -->
@@ -1472,6 +1473,13 @@
           </div>
           <button class="btn-coral" style="width: 100%; justify-content: center;" onclick="admAddGmailAccount()">Add Gmail Account</button>
         </div>
+
+        <!-- Section: Backend URL Configuration (Render) -->
+        <div id="admSectionConfig" style="display: none;">
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Enter your Render.com Web Service URL:</p>
+          <input type="url" id="admBackendUrlInput" class="adm-input" placeholder="https://your-service.onrender.com" />
+          <button class="btn-coral" style="width: 100%; justify-content: center;" onclick="saveBackendUrl()">Save Backend URL</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1489,7 +1497,8 @@
     ═══════════════════════════════════════════════════════════════ */
     const SUPABASE_URL = 'https://pqxqsvkliumopyotloke.supabase.co';
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxeHFzdmtsaXVtb3B5b3Rsb2tlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzMTc3ODMsImV4cCI6MjA5ODg5Mzc4M30._oekMnDNvFBOtEez0R4JSB_fLCCWfrNCkOvuLL8yJjs';
-    const RAILWAY_URL = 'https://koreomail2.up.railway.app';
+    // Backend server URL (Render / Railway / Custom)
+    let BACKEND_URL = localStorage.getItem('nomad_backend_url') || 'https://koreomail2.up.railway.app';
 
     // Supabase client instance
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -1538,7 +1547,7 @@
       select.innerHTML = '<option value="">Loading accounts…</option>';
 
       try {
-        const r = await fetch(RAILWAY_URL + '/api/public/gmail-accounts');
+        const r = await fetch(BACKEND_URL + '/api/public/gmail-accounts');
         const data = await r.json();
         const accounts = (data.ok && data.accounts) ? data.accounts : [];
 
@@ -1656,7 +1665,7 @@
       btnLabel.textContent = 'Generating…';
 
       try {
-        const r = await fetch(RAILWAY_URL + '/api/generate-alias', {
+        const r = await fetch(BACKEND_URL + '/api/generate-alias', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ gmail_account: currentBaseGmail })
@@ -2211,22 +2220,40 @@
     function showAdminContent() {
       document.getElementById('adminAuthLock').style.display = 'none';
       document.getElementById('adminPanelContent').style.display = 'block';
+      const input = document.getElementById('admBackendUrlInput');
+      if (input) input.value = BACKEND_URL;
       loadAdminStats();
     }
 
     function switchAdminTab(tab) {
-      if (tab === 'accounts') {
-        document.getElementById('admTabAccounts').classList.add('active');
-        document.getElementById('admTabAdd').classList.remove('active');
-        document.getElementById('admSectionAccounts').style.display = 'block';
-        document.getElementById('admSectionAdd').style.display = 'none';
-        loadAdminStats();
-      } else {
-        document.getElementById('admTabAdd').classList.add('active');
-        document.getElementById('admTabAccounts').classList.remove('active');
-        document.getElementById('admSectionAccounts').style.display = 'none';
-        document.getElementById('admSectionAdd').style.display = 'block';
+      ['accounts', 'add', 'config'].forEach(t => {
+        const btn = document.getElementById('admTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        const sec = document.getElementById('admSection' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (btn) btn.classList.toggle('active', t === tab);
+        if (sec) sec.style.display = (t === tab ? 'block' : 'none');
+      });
+      if (tab === 'accounts') loadAdminStats();
+      if (tab === 'config') {
+        const input = document.getElementById('admBackendUrlInput');
+        if (input) input.value = BACKEND_URL;
       }
+    }
+
+    function saveBackendUrl() {
+      let val = document.getElementById('admBackendUrlInput').value.trim();
+      if (!val) {
+        showToast('Please enter a valid URL');
+        return;
+      }
+      if (!val.startsWith('http://') && !val.startsWith('https://')) {
+        val = 'https://' + val;
+      }
+      val = val.replace(/\/+$/, '');
+      BACKEND_URL = val;
+      localStorage.setItem('nomad_backend_url', val);
+      showToast(`Backend updated: ${val}`);
+      switchAdminTab('accounts');
+      loadAvailableGmails();
     }
 
     async function loadAdminStats() {
@@ -2234,7 +2261,7 @@
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading…</td></tr>';
 
       try {
-        const r = await fetch(RAILWAY_URL + '/api/admin/gmail-accounts/stats', {
+        const r = await fetch(BACKEND_URL + '/api/admin/gmail-accounts/stats', {
           headers: { 'x-admin-secret': adminSecret }
         });
         const data = await r.json();
@@ -2274,7 +2301,7 @@
       }
 
       try {
-        const r = await fetch(RAILWAY_URL + '/api/admin/gmail-accounts/add', {
+        const r = await fetch(BACKEND_URL + '/api/admin/gmail-accounts/add', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2298,7 +2325,7 @@
 
     async function admToggleVisible(account, newVisible) {
       try {
-        await fetch(RAILWAY_URL + '/api/admin/gmail-accounts/set-visibility', {
+        await fetch(BACKEND_URL + '/api/admin/gmail-accounts/set-visibility', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2314,7 +2341,7 @@
     async function admResetDaily(account) {
       if (!confirm(`Reset today's daily generation limit for ${account}?`)) return;
       try {
-        await fetch(RAILWAY_URL + '/api/admin/gmail-accounts/reset-daily', {
+        await fetch(BACKEND_URL + '/api/admin/gmail-accounts/reset-daily', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2337,7 +2364,7 @@
     async function admDeleteAccount(account) {
       if (!confirm(`Are you sure you want to remove ${account}?`)) return;
       try {
-        await fetch(RAILWAY_URL + '/api/admin/gmail-accounts/remove', {
+        await fetch(BACKEND_URL + '/api/admin/gmail-accounts/remove', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

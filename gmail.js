@@ -62,7 +62,7 @@ const redirectUri = process.env.RENDER_EXTERNAL_URL
 
 // ── Supabase client ──
 const { createClient } = require('@supabase/supabase-js');
-const _sbUrl = process.env.SUPABASE_URL || 'https://pqxqsvkliumopyotloke.supabase.co';
+const _sbUrl = process.env.SUPABASE_URL || 'https://tlaazrkfluhrnpywjujr.supabase.co';
 const _sbKey = process.env.SUPABASE_SERVICE_KEY || 'placeholder_key_set_in_render_env';
 const _sb = createClient(_sbUrl, _sbKey);
 

@@ -1545,6 +1545,7 @@
                             <thead>
                                 <tr>
                                     <th>Gmail Account</th>
+                                    <th>Status</th>
                                     <th>Max 2-Dots</th>
                                     <th>Today</th>
                                     <th>Visible</th>
@@ -1553,7 +1554,7 @@
                             </thead>
                             <tbody id="admAccountsTbody">
                                 <tr>
-                                    <td colspan="5" style="text-align:center;">Loading accounts...</td>
+                                    <td colspan="6" style="text-align:center;">Loading accounts...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1562,18 +1563,27 @@
 
                 <!-- Section: Add Account -->
                 <div id="admSectionAdd" style="display: none;">
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Register a Gmail
-                        account to generate 2-dot aliases from:</p>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+                        Connect a Gmail account to generate 2-dot aliases and automatically receive Nomad eSIM verification codes. You will be redirected to Google to authorize access.
+                    </p>
                     <input type="email" id="admNewGmailInput" class="adm-input"
-                        placeholder="e.g. mynomadbot@gmail.com" />
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                        placeholder="e.g. mynomadbot@gmail.com (optional)" />
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
                         <input type="checkbox" id="admNewGmailVisible" checked
                             style="width: 16px; height: 16px; accent-color: var(--accent-coral);" />
                         <label for="admNewGmailVisible" style="font-size: 0.78rem; font-weight: 600;">Make visible in
                             user generator</label>
                     </div>
-                    <button class="btn-coral" style="width: 100%; justify-content: center;"
-                        onclick="admAddGmailAccount()">Add Gmail Account</button>
+                    <button class="btn-coral" style="width: 100%; justify-content: center; gap: 8px;"
+                        onclick="admAddGmailAccount()">
+                        <svg width="18" height="18" viewBox="0 0 24 24">
+                            <path d="M21.35 11.1h-9.17v2.98h5.27c-.23 1.25-.94 2.31-1.99 3.01v2.5h3.22c1.88-1.73 2.97-4.28 2.97-7.29 0-.67-.06-1.31-.18-1.91z" fill="#4285F4"/>
+                            <path d="M12.18 21c2.7 0 4.96-.89 6.62-2.42l-3.22-2.5c-.9.6-2.04.96-3.4.96-2.61 0-4.82-1.76-5.61-4.12H3.24v2.58A9.99 9.99 0 0012.18 21z" fill="#34A853"/>
+                            <path d="M6.57 12.92c-.2-.6-.32-1.25-.32-1.92s.12-1.32.32-1.92V6.5H3.24A9.986 9.986 0 002 11c0 1.61.39 3.14 1.24 4.5l3.33-2.58z" fill="#FBBC05"/>
+                            <path d="M12.18 4.96c1.47 0 2.78.51 3.82 1.5l2.86-2.86C17.13 1.99 14.88 1 12.18 1 7.68 1 3.79 3.56 2.24 7.28l3.33 2.58c.79-2.36 3-4.12 5.61-4.12z" fill="#EA4335"/>
+                        </svg>
+                        Sign in with Google &amp; Link Account
+                    </button>
                 </div>
 
                 <!-- Section: Backend URL Configuration (Render) -->
@@ -2366,7 +2376,7 @@
 
         async function loadAdminStats() {
             const tbody = document.getElementById('admAccountsTbody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading…</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading…</td></tr>';
 
             try {
                 const r = await fetch(BACKEND_URL + '/api/admin/gmail-accounts/stats', {
@@ -2375,60 +2385,80 @@
                 const data = await r.json();
 
                 if (!data.ok || !data.stats) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#ef4444;">Failed to load accounts</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444;">Failed to load accounts</td></tr>';
                     return;
                 }
 
-                tbody.innerHTML = data.stats.map(s => `
-          <tr>
-            <td><strong>${escHtml(s.email)}</strong></td>
-            <td>${s.used_variants} / ${s.total_variants} ${s.exhausted ? '<span style="color:#ef4444;font-weight:700;">(LOCKED)</span>' : ''}</td>
-            <td>${s.used_today ? '<span style="color:#ef4444;font-weight:700;">Used (1/1)</span>' : '<span style="color:#10b981;font-weight:700;">Available</span>'}</td>
-            <td>
-              <button onclick="admToggleVisible('${escHtml(s.email)}', ${!s.visible})" style="border:none;background:none;cursor:pointer;font-weight:700;color:${s.visible ? '#10b981' : '#94a3b8'};">
-                ${s.visible ? 'Visible' : 'Hidden'}
-              </button>
-            </td>
-            <td>
-              <button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-text-sm" title="Reset today limit" style="margin-right:6px;">Reset</button>
-              <button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-text-sm" style="color:#ef4444;" title="Delete">Delete</button>
-            </td>
-          </tr>
-        `).join('');
+                if (!data.stats.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">No accounts added yet. Click "+ Add Gmail" to link one!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.stats.map(s => {
+                    const statusBadge = s.authenticated
+                        ? '<span style="color:#10b981;font-weight:700;display:inline-flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;"></span>Linked</span>'
+                        : `<button onclick="admLinkAccount('${escHtml(s.email)}')" class="btn-text-sm" style="color:#ff5733;font-weight:700;border:1px solid #ff5733;border-radius:6px;padding:2px 8px;background:rgba(255,87,51,0.08);">Link Google</button>`;
+
+                    return `
+                      <tr>
+                        <td><strong>${escHtml(s.email)}</strong></td>
+                        <td>${statusBadge}</td>
+                        <td>${s.used_variants} / ${s.total_variants} ${s.exhausted ? '<span style="color:#ef4444;font-weight:700;">(LOCKED)</span>' : ''}</td>
+                        <td>${s.used_today ? '<span style="color:#ef4444;font-weight:700;">Used (1/1)</span>' : '<span style="color:#10b981;font-weight:700;">Available</span>'}</td>
+                        <td>
+                          <button onclick="admToggleVisible('${escHtml(s.email)}', ${!s.visible})" style="border:none;background:none;cursor:pointer;font-weight:700;color:${s.visible ? '#10b981' : '#94a3b8'};">
+                            ${s.visible ? 'Visible' : 'Hidden'}
+                          </button>
+                        </td>
+                        <td>
+                          <button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-text-sm" title="Reset today limit" style="margin-right:6px;">Reset</button>
+                          <button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-text-sm" style="color:#ef4444;" title="Delete">Delete</button>
+                        </td>
+                      </tr>
+                    `;
+                }).join('');
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error communicating with server</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Error communicating with server</td></tr>';
             }
         }
 
+        function admLinkAccount(email) {
+            showToast('Redirecting to Google Sign-In...');
+            const returnUrl = window.location.origin + window.location.pathname;
+            const targetUrl = `${BACKEND_URL}/auth/login?account=${encodeURIComponent(email || '')}&return_to=${encodeURIComponent(returnUrl)}`;
+            setTimeout(() => {
+                window.location.href = targetUrl;
+            }, 300);
+        }
+
         async function admAddGmailAccount() {
-            const email = document.getElementById('admNewGmailInput').value.trim().toLowerCase();
-            const visible = document.getElementById('admNewGmailVisible').checked;
-            if (!email || !email.includes('@')) {
-                alert('Please enter a valid Gmail address');
-                return;
+            const emailInput = document.getElementById('admNewGmailInput');
+            const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+            const visibleCheckbox = document.getElementById('admNewGmailVisible');
+            const visible = visibleCheckbox ? visibleCheckbox.checked : true;
+
+            // Pre-register in Supabase if an email was typed
+            if (email && email.includes('@')) {
+                try {
+                    await fetch(BACKEND_URL + '/api/admin/gmail-accounts/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-admin-secret': adminSecret
+                        },
+                        body: JSON.stringify({ email, visible })
+                    });
+                } catch (e) {
+                    console.warn('Pre-add note:', e);
+                }
             }
 
-            try {
-                const r = await fetch(BACKEND_URL + '/api/admin/gmail-accounts/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-admin-secret': adminSecret
-                    },
-                    body: JSON.stringify({ email, visible })
-                });
-                const data = await r.json();
-                if (data.ok) {
-                    showToast(`Added ${email}`);
-                    document.getElementById('admNewGmailInput').value = '';
-                    switchAdminTab('accounts');
-                    loadAvailableGmails();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (e) {
-                alert('Connection error');
-            }
+            showToast('Redirecting to Google Sign-In...');
+            const returnUrl = window.location.origin + window.location.pathname;
+            const targetUrl = `${BACKEND_URL}/auth/login?account=${encodeURIComponent(email)}&return_to=${encodeURIComponent(returnUrl)}`;
+            setTimeout(() => {
+                window.location.href = targetUrl;
+            }, 300);
         }
 
         async function admToggleVisible(account, newVisible) {

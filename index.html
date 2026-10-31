@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Nomad Mailshot</title>
 
-    <!-- Fonts: Plus Jakarta Sans, Inter, JetBrains Mono & Silkscreen (Dot-Matrix Numbers) -->
+    <!-- Fonts: Plus Jakarta Sans, Inter, JetBrains Mono & Silkscreen -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -37,25 +37,43 @@
             --font-matrix: 'Silkscreen', monospace;
         }
 
-        * {
+        /* Eliminate all transparent blue/grey tap boxes on mobile */
+        *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none;
         }
 
-        html, body {
-            height: 100dvh;
+        button, a, select, input {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        button:focus, button:active, button:focus-visible,
+        select:focus, select:active,
+        input:focus, input:active,
+        a:focus, a:active {
+            outline: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            box-shadow: none;
+        }
+
+        html {
             width: 100%;
-            overflow: hidden;
+            overflow-x: hidden;
+        }
+
+        body {
+            width: 100%;
+            min-height: 100dvh;
+            overflow-x: hidden;
             font-family: var(--font-sans);
             background-color: var(--bg-dark);
             color: var(--text-white);
             user-select: none;
-        }
-
-        /* Paceform Atmospheric Horizon-to-Amber Mesh Background */
-        body {
             background:
                 radial-gradient(circle at 80% 10%, rgba(112, 161, 215, 0.38) 0%, rgba(42, 82, 138, 0.16) 35%, transparent 65%),
                 radial-gradient(circle at 20% 35%, rgba(234, 88, 12, 0.28) 0%, rgba(159, 18, 57, 0.22) 45%, transparent 70%),
@@ -64,7 +82,44 @@
             flex-direction: column;
         }
 
-        /* Subtle Studio Grain */
+        /* Desktop: single-screen viewport */
+        @media (min-width: 769px) {
+            html, body {
+                height: 100dvh;
+                overflow: hidden;
+            }
+            .app-shell {
+                height: 100%;
+                overflow: hidden;
+            }
+            .inbox-panel {
+                flex: 1;
+                min-height: 0;
+                overflow: hidden;
+            }
+        }
+
+        /* Mobile: scroll naturally if needed, zero horizontal overflow */
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                overflow-y: auto;
+            }
+            .app-shell {
+                height: auto;
+                overflow: visible;
+                padding: 10px 12px 28px;
+                gap: 10px;
+            }
+            .inbox-panel {
+                min-height: 380px;
+            }
+            .email-list {
+                max-height: 480px;
+            }
+        }
+
+        /* Grain texture */
         body::before {
             content: "";
             position: fixed;
@@ -75,9 +130,9 @@
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
         }
 
-        /* ═══════════════════════════════════════════════════════════════════
-           INSTANT OTP ALERT BAR (TOP)
-        ═══════════════════════════════════════════════════════════════════ */
+        /* --------------------------------------------------------
+           TOP NOTIFICATION BAR (AUTO-COPIED CODE)
+        -------------------------------------------------------- */
         .otp-alert-bar {
             background: linear-gradient(90deg, #9F1239 0%, #E11D48 50%, #EA580C 100%);
             color: #FFF;
@@ -108,9 +163,9 @@
             letter-spacing: 0.1em;
         }
 
-        /* ═══════════════════════════════════════════════════════════════════
-           MAIN SINGLE-SCREEN APP SHELL (NO PAGE SCROLL)
-        ═══════════════════════════════════════════════════════════════════ */
+        /* --------------------------------------------------------
+           APP CONTAINER
+        -------------------------------------------------------- */
         .app-shell {
             flex: 1;
             width: 100%;
@@ -120,8 +175,6 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            height: 100%;
-            overflow: hidden;
         }
 
         /* 1. COMPACT TOP BAR */
@@ -129,24 +182,27 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 8px;
             flex-shrink: 0;
+            flex-wrap: wrap;
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 9px;
+            gap: 8px;
             text-decoration: none;
             color: #FFF;
+            flex-shrink: 0;
         }
 
         .brand-dots {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 2.5px;
+            gap: 2px;
+            flex-shrink: 0;
         }
 
         .brand-dots span {
@@ -157,26 +213,74 @@
         }
 
         .brand-dots span:nth-child(2),
-        .brand-dots span:nth-child(8) { background: #FB923C; }
-        .brand-dots span:nth-child(5) { background: var(--crimson); }
+        .brand-dots span:nth-child(8) {
+            background: #FB923C;
+        }
+
+        .brand-dots span:nth-child(5) {
+            background: var(--crimson);
+        }
 
         .brand-name {
             font-family: var(--font-display);
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 800;
             letter-spacing: -0.03em;
+            white-space: nowrap;
         }
 
         .top-controls {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        /* Server 1-3 Switcher in Top Bar */
+        .server-select-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .server-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: rgba(225, 29, 72, 0.16);
+            border: 1px solid rgba(225, 29, 72, 0.45);
+            color: #FDA4AF;
+            font-family: var(--font-display);
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 7px 22px 7px 10px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .server-select:hover {
+            background: rgba(225, 29, 72, 0.28);
+            border-color: rgba(225, 29, 72, 0.7);
+        }
+
+        .server-select option {
+            background: #121216;
+            color: #FFF;
+        }
+
+        .select-caret-mini {
+            position: absolute;
+            right: 7px;
+            pointer-events: none;
+            color: #FDA4AF;
+            display: flex;
         }
 
         .gmail-select-wrap {
             position: relative;
             display: flex;
             align-items: center;
+            min-width: 0;
         }
 
         .gmail-select {
@@ -187,13 +291,14 @@
             border: 1px solid var(--border-glass);
             color: #FFF;
             font-family: var(--font-sans);
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             font-weight: 600;
-            padding: 8px 28px 8px 12px;
+            padding: 7px 24px 7px 10px;
             border-radius: 999px;
             cursor: pointer;
-            max-width: 210px;
+            max-width: 170px;
             text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .gmail-select:focus {
@@ -208,15 +313,15 @@
 
         .gmail-caret {
             position: absolute;
-            right: 10px;
+            right: 8px;
             pointer-events: none;
             color: var(--text-secondary);
             display: flex;
         }
 
         .btn-icon-glass {
-            width: 34px;
-            height: 34px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(12px);
@@ -226,7 +331,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
             flex-shrink: 0;
         }
 
@@ -235,9 +340,9 @@
             border-color: rgba(255, 255, 255, 0.35);
         }
 
-        /* ═══════════════════════════════════════════════════════════════════
+        /* --------------------------------------------------------
            2. CONTROL DECK (ALIAS GENERATOR + CODE BOX + TARGETS)
-        ═══════════════════════════════════════════════════════════════════ */
+        -------------------------------------------------------- */
         .control-deck {
             display: grid;
             grid-template-columns: 1.25fr 0.95fr;
@@ -245,9 +350,8 @@
             flex-shrink: 0;
         }
 
-        /* Left Card: Active Email Alias & Generate Button */
         .glass-card-main {
-            border-radius: 22px;
+            border-radius: 20px;
             padding: 14px 16px;
             background:
                 radial-gradient(circle at 90% 10%, rgba(225, 29, 72, 0.25) 0%, transparent 55%),
@@ -260,6 +364,7 @@
             flex-direction: column;
             justify-content: space-between;
             gap: 10px;
+            min-width: 0;
         }
 
         .card-row-top {
@@ -267,6 +372,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .card-label {
@@ -294,16 +400,16 @@
             color: var(--text-secondary);
         }
 
-        /* Active Email Display + Copy */
         .alias-bar {
             background: rgba(5, 5, 8, 0.75);
             border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 9px 10px 9px 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 8px;
+            min-width: 0;
         }
 
         .alias-text {
@@ -315,6 +421,8 @@
             overflow: hidden;
             text-overflow: ellipsis;
             user-select: all;
+            min-width: 0;
+            flex: 1;
         }
 
         .btn-copy-small {
@@ -322,7 +430,7 @@
             border: 1px solid rgba(255, 255, 255, 0.18);
             color: #FFF;
             padding: 6px 12px;
-            border-radius: 9px;
+            border-radius: 8px;
             font-family: var(--font-display);
             font-size: 0.74rem;
             font-weight: 700;
@@ -336,13 +444,13 @@
             color: #000;
         }
 
-        /* Paceform Crimson Pill Button with Arrow Circle */
+        /* Generate Alias Button: Decreased Roundness (12px instead of 999px) */
         .btn-generate-pace {
             width: 100%;
             background: linear-gradient(135deg, #E11D48 0%, #9F1239 100%);
             border: 1px solid rgba(255, 255, 255, 0.28);
-            border-radius: 999px;
-            padding: 6px 6px 6px 18px;
+            border-radius: 12px; /* Decreased roundness */
+            padding: 9px 10px 9px 18px;
             color: #FFF;
             font-family: var(--font-display);
             font-size: 0.86rem;
@@ -369,20 +477,21 @@
         }
 
         .btn-arrow-circle {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px; /* Matching decreased roundness */
             background: rgba(0, 0, 0, 0.35);
             border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #FFF;
+            flex-shrink: 0;
         }
 
-        /* Right Card: Paceform Warm Amber Squircle (Latest Code + Auto-Copy Mode) */
+        /* Right Card: Code + Mode */
         .squircle-code-card {
-            border-radius: 22px;
+            border-radius: 20px;
             padding: 14px 16px;
             background:
                 radial-gradient(circle at 20% 20%, rgba(251, 146, 60, 0.38) 0%, transparent 58%),
@@ -396,9 +505,9 @@
             flex-direction: column;
             justify-content: space-between;
             gap: 10px;
+            min-width: 0;
         }
 
-        /* Latest Code Display Box */
         .live-code-box {
             display: flex;
             align-items: center;
@@ -406,23 +515,27 @@
             gap: 10px;
             background: rgba(0, 0, 0, 0.35);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 14px;
+            border-radius: 12px;
             padding: 8px 12px;
-            min-height: 54px;
+            min-height: 52px;
+            min-width: 0;
         }
 
         .code-matrix-val {
             font-family: var(--font-matrix);
-            font-size: 1.45rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: #FFF;
             letter-spacing: 0.05em;
             text-shadow: 0 0 18px rgba(251, 146, 60, 0.65);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .btn-white-circle {
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             background: #FFF;
             color: #050506;
@@ -439,7 +552,7 @@
             transform: scale(1.06);
         }
 
-        /* Compact 4-Button Auto-Copy Mode Selector */
+        /* Merged Target Mode: Android / Windows (LPA), iOS (Activation Code), QR Code */
         .target-bar-wrap {
             display: flex;
             flex-direction: column;
@@ -448,7 +561,7 @@
 
         .target-mode-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 5px;
         }
 
@@ -457,7 +570,7 @@
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: var(--text-secondary);
             padding: 7px 4px;
-            border-radius: 10px;
+            border-radius: 9px;
             font-family: var(--font-display);
             font-size: 0.72rem;
             font-weight: 700;
@@ -465,6 +578,8 @@
             cursor: pointer;
             transition: all 0.15s;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .target-pill:hover {
@@ -472,7 +587,6 @@
             border-color: rgba(255, 255, 255, 0.25);
         }
 
-        /* Euphoria Emerald Active State from Reference */
         .target-pill.active {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.38) 0%, rgba(6, 78, 59, 0.75) 100%);
             border-color: #34D399;
@@ -480,22 +594,21 @@
             box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
         }
 
-        /* ═══════════════════════════════════════════════════════════════════
-           3. INBOX LIST SECTION (FILLS REMAINING SCREEN SPACE)
-        ═══════════════════════════════════════════════════════════════════ */
+        /* --------------------------------------------------------
+           3. INBOX LIST SECTION
+        -------------------------------------------------------- */
         .inbox-panel {
-            flex: 1;
-            min-height: 0;
             background: rgba(12, 12, 16, 0.78);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--border-glass);
-            border-radius: 22px;
+            border-radius: 20px;
             padding: 12px 14px;
             display: flex;
             flex-direction: column;
             gap: 10px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            min-width: 0;
         }
 
         .inbox-toolbar {
@@ -505,7 +618,8 @@
             gap: 8px;
             flex-shrink: 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            padding-bottom: 9px;
+            padding-bottom: 8px;
+            flex-wrap: wrap;
         }
 
         .filter-tabs-row {
@@ -514,6 +628,7 @@
             gap: 6px;
             overflow-x: auto;
             scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
         }
 
         .filter-tabs-row::-webkit-scrollbar {
@@ -527,7 +642,7 @@
             font-family: var(--font-display);
             font-size: 0.74rem;
             font-weight: 700;
-            padding: 6px 12px;
+            padding: 5px 12px;
             border-radius: 999px;
             cursor: pointer;
             white-space: nowrap;
@@ -551,7 +666,7 @@
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.12);
             color: var(--text-secondary);
-            padding: 6px 10px;
+            padding: 5px 10px;
             border-radius: 999px;
             font-family: var(--font-display);
             font-size: 0.72rem;
@@ -567,7 +682,7 @@
             background: rgba(255, 255, 255, 0.14);
         }
 
-        /* Internal Scrollable Email List */
+        /* Email Stream List */
         .email-list {
             flex: 1;
             overflow-y: auto;
@@ -575,6 +690,7 @@
             flex-direction: column;
             gap: 8px;
             padding-right: 2px;
+            min-width: 0;
         }
 
         .email-list::-webkit-scrollbar {
@@ -589,13 +705,14 @@
         .email-item {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 14px;
-            padding: 11px 14px;
+            border-radius: 12px;
+            padding: 10px 12px;
             display: flex;
             align-items: center;
             gap: 12px;
             cursor: pointer;
             transition: all 0.15s;
+            min-width: 0;
         }
 
         .email-item:hover {
@@ -604,15 +721,15 @@
         }
 
         .email-icon-box {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             background: linear-gradient(135deg, rgba(225, 29, 72, 0.25), rgba(234, 88, 12, 0.25));
             border: 1px solid rgba(225, 29, 72, 0.4);
             color: #FB923C;
             font-family: var(--font-display);
             font-weight: 800;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -635,23 +752,27 @@
         .email-sender-title {
             font-family: var(--font-display);
             font-weight: 700;
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             color: #FFF;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .email-timestamp {
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--text-muted);
             font-family: var(--font-mono);
+            flex-shrink: 0;
         }
 
         .email-subject-text {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             color: var(--text-secondary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
         .email-tags-row {
@@ -665,23 +786,23 @@
             background: rgba(225, 29, 72, 0.18);
             border: 1px solid rgba(225, 29, 72, 0.45);
             color: #FDA4AF;
-            padding: 3px 9px;
-            border-radius: 7px;
+            padding: 3px 8px;
+            border-radius: 6px;
             font-family: var(--font-matrix);
-            font-size: 0.76rem;
+            font-size: 0.74rem;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
+            gap: 6px;
         }
 
         .tag-btn-copy {
             background: #FFF;
             color: #050506;
             border: none;
-            padding: 2px 7px;
-            border-radius: 5px;
+            padding: 2px 6px;
+            border-radius: 4px;
             font-family: var(--font-display);
-            font-size: 0.66rem;
+            font-size: 0.65rem;
             font-weight: 800;
             cursor: pointer;
         }
@@ -690,13 +811,13 @@
             background: rgba(16, 185, 129, 0.16);
             border: 1px solid rgba(16, 185, 129, 0.4);
             color: #6EE7B7;
-            padding: 3px 9px;
-            border-radius: 7px;
-            font-size: 0.72rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
         .tag-auto-note {
@@ -713,17 +834,17 @@
             text-align: center;
             color: var(--text-muted);
             gap: 8px;
-            padding: 20px;
-            font-size: 0.8rem;
+            padding: 24px;
+            font-size: 0.78rem;
         }
 
-        /* ═══════════════════════════════════════════════════════════════════
+        /* --------------------------------------------------------
            MODALS (ADMIN, QR, EMAIL VIEW)
-        ═══════════════════════════════════════════════════════════════════ */
+        -------------------------------------------------------- */
         .modal-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(3, 3, 5, 0.84);
+            background: rgba(3, 3, 5, 0.86);
             backdrop-filter: blur(16px);
             z-index: 1000;
             display: flex;
@@ -743,9 +864,9 @@
         .modal-box {
             background: #101015;
             border: 1px solid var(--border-highlight);
-            border-radius: 22px;
+            border-radius: 20px;
             width: 100%;
-            max-width: 560px;
+            max-width: 540px;
             max-height: 90dvh;
             display: flex;
             flex-direction: column;
@@ -754,7 +875,7 @@
         }
 
         .modal-header-row {
-            padding: 16px 20px;
+            padding: 14px 18px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
@@ -763,7 +884,7 @@
 
         .modal-header-row h2 {
             font-family: var(--font-display);
-            font-size: 1rem;
+            font-size: 0.98rem;
             font-weight: 700;
         }
 
@@ -771,14 +892,18 @@
             background: rgba(255, 255, 255, 0.08);
             border: none;
             color: #FFF;
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
         }
 
         .modal-inner {
-            padding: 20px;
+            padding: 18px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -790,6 +915,7 @@
             gap: 6px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: 10px;
+            overflow-x: auto;
         }
 
         .adm-tab-btn {
@@ -799,9 +925,10 @@
             font-family: var(--font-display);
             font-weight: 700;
             font-size: 0.78rem;
-            padding: 6px 12px;
+            padding: 5px 12px;
             border-radius: 999px;
             cursor: pointer;
+            white-space: nowrap;
         }
 
         .adm-tab-btn.active {
@@ -818,13 +945,14 @@
 
         .adm-table-wrap th {
             text-align: left;
-            padding: 8px;
+            padding: 8px 6px;
             color: var(--text-muted);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 700;
         }
 
         .adm-table-wrap td {
-            padding: 10px 8px;
+            padding: 9px 6px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
@@ -832,9 +960,9 @@
             width: 100%;
             background: #060608;
             border: 1px solid var(--border-glass);
-            border-radius: 12px;
+            border-radius: 10px;
             color: #FFF;
-            padding: 11px 14px;
+            padding: 10px 12px;
             font-size: 0.85rem;
             outline: none;
         }
@@ -843,15 +971,20 @@
             background: linear-gradient(135deg, #E11D48 0%, #9F1239 100%);
             color: #FFF;
             border: 1px solid rgba(255, 255, 255, 0.25);
-            padding: 10px 18px;
-            border-radius: 999px;
+            padding: 9px 16px;
+            border-radius: 10px;
             font-family: var(--font-display);
             font-size: 0.82rem;
             font-weight: 700;
             cursor: pointer;
+            transition: all 0.15s;
         }
 
-        /* TOAST NOTIFICATION */
+        .btn-crimson-pill:hover {
+            filter: brightness(1.08);
+        }
+
+        /* Toast Alert */
         .toast-pill {
             position: fixed;
             bottom: 18px;
@@ -860,10 +993,10 @@
             backdrop-filter: blur(16px);
             border: 1px solid var(--crimson);
             color: #FFF;
-            padding: 10px 18px;
+            padding: 9px 16px;
             border-radius: 999px;
             font-family: var(--font-display);
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 700;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
             display: flex;
@@ -881,15 +1014,10 @@
             opacity: 1;
         }
 
-        /* ═══════════════════════════════════════════════════════════════════
-           MOBILE ZERO-SCROLL COMPACT OPTIMIZATION
-        ═══════════════════════════════════════════════════════════════════ */
+        /* --------------------------------------------------------
+           MOBILE OVERFLOW FIXES & RESPONSIVENESS
+        -------------------------------------------------------- */
         @media (max-width: 768px) {
-            .app-shell {
-                padding: 8px 10px;
-                gap: 8px;
-            }
-
             .control-deck {
                 grid-template-columns: 1fr;
                 gap: 8px;
@@ -897,36 +1025,31 @@
 
             .glass-card-main,
             .squircle-code-card {
-                padding: 10px 12px;
+                padding: 12px 14px;
                 border-radius: 16px;
-                gap: 7px;
+                gap: 8px;
             }
 
             .alias-bar {
-                padding: 7px 8px 7px 11px;
+                padding: 8px 10px;
             }
 
             .alias-text {
-                font-size: 0.82rem;
+                font-size: 0.84rem;
             }
 
             .btn-generate-pace {
-                padding: 5px 5px 5px 14px;
-                font-size: 0.8rem;
-            }
-
-            .btn-arrow-circle {
-                width: 26px;
-                height: 26px;
+                padding: 8px 10px 8px 14px;
+                font-size: 0.82rem;
             }
 
             .live-code-box {
-                min-height: 44px;
+                min-height: 48px;
                 padding: 6px 10px;
             }
 
             .code-matrix-val {
-                font-size: 1.2rem;
+                font-size: 1.25rem;
             }
 
             .target-pill {
@@ -935,15 +1058,31 @@
             }
 
             .inbox-panel {
-                padding: 9px 10px;
+                padding: 10px 12px;
                 border-radius: 16px;
-                gap: 7px;
+                gap: 8px;
             }
+        }
 
+        @media (max-width: 480px) {
+            .top-bar {
+                gap: 6px;
+            }
+            .brand-name {
+                font-size: 0.92rem;
+            }
+            .server-select {
+                font-size: 0.7rem;
+                padding: 5px 18px 5px 8px;
+            }
             .gmail-select {
-                max-width: 165px;
-                font-size: 0.74rem;
-                padding: 6px 24px 6px 10px;
+                max-width: 130px;
+                font-size: 0.72rem;
+                padding: 5px 20px 5px 8px;
+            }
+            .btn-icon-glass {
+                width: 28px;
+                height: 28px;
             }
         }
     </style>
@@ -973,33 +1112,51 @@
             </a>
 
             <div class="top-controls">
-                <div class="gmail-select-wrap">
-                    <select id="baseGmailSelect" class="gmail-select" onchange="onSelectBaseGmail()">
-                        <option value="">Loading accounts...</option>
+                <!-- Homepage Server 1-3 Selector -->
+                <div class="server-select-wrap" title="Switch Server Profile">
+                    <select id="homeServerSelect" class="server-select" onchange="onSwitchServer(this.value)">
+                        <option value="1">Server 1</option>
+                        <option value="2">Server 2</option>
+                        <option value="3">Server 3</option>
                     </select>
-                    <div class="gmail-caret">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <div class="select-caret-mini">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <polyline points="6 9 12 15 18 9"/>
                         </svg>
                     </div>
                 </div>
 
-                <button class="btn-icon-glass" onclick="openQrModal()" title="Show eSIM QR">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                <!-- Gmail Account Selector -->
+                <div class="gmail-select-wrap">
+                    <select id="baseGmailSelect" class="gmail-select" onchange="onSelectBaseGmail()">
+                        <option value="">Loading...</option>
+                    </select>
+                    <div class="gmail-caret">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                    </div>
+                </div>
+
+                <button class="btn-icon-glass" onclick="openQrModal()" title="Show eSIM Details">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
                     </svg>
                 </button>
 
                 <button class="btn-icon-glass" onclick="openAdminModal()" title="Admin Settings">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                     </svg>
                 </button>
             </div>
         </header>
 
-        <!-- 2. COMPACT CONTROL DECK (ALIAS GENERATOR + CODE/TARGET) -->
+        <!-- 2. CONTROL DECK (ALIAS GENERATOR + CODE/TARGET) -->
         <section class="control-deck">
 
             <!-- Card A: Email Alias Generator -->
@@ -1007,7 +1164,7 @@
                 <div class="card-row-top">
                     <span class="card-label">Current Email Alias</span>
                     <div class="quota-badges">
-                        <span id="dailyLimitStatusLabel" style="color:#6EE7B7;">1 Available Today</span>
+                        <span id="dailyLimitStatusLabel" style="color:#6EE7B7;">Ready (1/1 today)</span>
                         <span class="pill-stat" id="dotVariantsStat">-- / --</span>
                         <span style="display:none;" id="aliasCountPill"></span>
                     </div>
@@ -1018,12 +1175,13 @@
                     <button class="btn-copy-small" onclick="copyCurrentAlias()">Copy</button>
                 </div>
 
+                <!-- Decreased Roundness (12px) Button -->
                 <button class="btn-generate-pace" id="btnGenAlias" onclick="onGenerateAliasClick()">
                     <span id="btnGenLabel">Generate New Alias</span>
                     <span class="btn-arrow-circle">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <line x1="7" y1="17" x2="17" y2="7"/>
-                            <polyline points="7 7 17 7 17 17"/>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="7" y1="17" x2="17" y2="7" />
+                            <polyline points="7 7 17 7 17 17" />
                         </svg>
                     </span>
                 </button>
@@ -1033,7 +1191,7 @@
             <div class="squircle-code-card">
                 <div class="card-row-top">
                     <span class="card-label" id="inspectorHeadline">Latest Code / eSIM</span>
-                    <span style="font-size:0.7rem;color:rgba(255,255,255,0.65);" id="autoCopyTargetLabel">Auto-copy: Android</span>
+                    <span style="font-size:0.7rem;color:rgba(255,255,255,0.7);" id="autoCopyTargetLabel">Auto-copy: Android / Windows</span>
                 </div>
 
                 <div class="live-code-box" id="inspectorPanel">
@@ -1041,27 +1199,29 @@
                         <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);">Waiting for Nomad email...</div>
                         <div class="code-matrix-val">------</div>
                     </div>
-                    <button class="btn-white-circle" id="btnMainInspectorAction" onclick="handleInspectorAction()" title="Copy or Show QR">
+                    <button class="btn-white-circle" id="btnMainInspectorAction" onclick="handleInspectorAction()" title="Show Code">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                         </svg>
                     </button>
                     <span id="inspectorBtnText" style="display:none;"></span>
                 </div>
 
+                <!-- Merged Target Mode: Android / Windows, iOS, QR Code -->
                 <div class="target-bar-wrap">
                     <div class="target-mode-grid">
-                        <button class="target-pill active" id="pillTargetAndroid" onclick="setEsimTarget('android')">Android</button>
+                        <button class="target-pill active" id="pillTargetAndroid" onclick="setEsimTarget('android')">Android / Windows</button>
                         <button class="target-pill" id="pillTargetIos" onclick="setEsimTarget('ios')">iOS</button>
-                        <button class="target-pill" id="pillTargetWindows" onclick="setEsimTarget('windows')">Windows</button>
                         <button class="target-pill" id="pillTargetQr" onclick="setEsimTarget('qr')">QR Code</button>
+                        <button id="pillTargetWindows" style="display:none;" onclick="setEsimTarget('android')"></button>
                     </div>
                 </div>
             </div>
 
         </section>
 
-        <!-- 3. INBOX LIST (SCROLLS INTERNALLY, FITS SCREEN) -->
+        <!-- 3. INBOX LIST -->
         <section class="inbox-panel">
             <div class="inbox-toolbar">
                 <div class="filter-tabs-row">
@@ -1073,7 +1233,10 @@
 
                 <div class="toolbar-actions">
                     <button class="btn-mini-tool" onclick="manualRefreshEmails()">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="23 4 23 10 17 10" />
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                        </svg>
                         Refresh
                     </button>
                     <button class="btn-mini-tool" onclick="clearStreamView()">Clear</button>
@@ -1090,22 +1253,24 @@
 
     </main>
 
-    <!-- ═══════════════════════════════════════════════════════════════════
-         ADMIN MODAL (Password: SM-2026)
-    ═══════════════════════════════════════════════════════════════════ -->
+    <!-- --------------------------------------------------------
+         ADMIN MODAL
+    -------------------------------------------------------- -->
     <div class="modal-backdrop" id="adminModalOverlay">
         <div class="modal-box">
             <div class="modal-header-row">
                 <h2>Admin Settings</h2>
-                <button class="modal-close" onclick="closeAdminModal()">✕</button>
+                <button class="modal-close" onclick="closeAdminModal()">&times;</button>
             </div>
 
             <div class="modal-inner">
+                <!-- Secret Password Input (No SM-2026 in placeholder!) -->
                 <div id="adminAuthLock">
                     <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:10px;">
                         Enter Admin Password:
                     </p>
-                    <input type="password" id="adminSecretInput" class="adm-text-input" placeholder="Password (SM-2026)" onkeydown="if(event.key==='Enter') verifyAdminSecret()" />
+                    <input type="password" id="adminSecretInput" class="adm-text-input" placeholder="Enter Password"
+                        onkeydown="if(event.key==='Enter') verifyAdminSecret()" />
                     <button class="btn-crimson-pill" style="width:100%;margin-top:12px;" onclick="verifyAdminSecret()">Unlock</button>
                 </div>
 
@@ -1113,39 +1278,56 @@
                     <div class="adm-tab-row">
                         <button class="adm-tab-btn active" id="admTabAccounts" onclick="switchAdminTab('accounts')">Accounts</button>
                         <button class="adm-tab-btn" id="admTabAdd" onclick="switchAdminTab('add')">+ Add Gmail</button>
-                        <button class="adm-tab-btn" id="admTabConfig" onclick="switchAdminTab('config')">Server URL</button>
+                        <button class="adm-tab-btn" id="admTabConfig" onclick="switchAdminTab('config')">Server URLs (1-3)</button>
                     </div>
 
+                    <!-- TAB 1: ACCOUNTS LIST -->
                     <div id="admSectionAccounts">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                            <span style="font-size:0.76rem;color:var(--text-muted);font-weight:700;">Connected Gmail Accounts</span>
+                            <span style="font-size:0.76rem;color:var(--text-muted);font-weight:700;">Connected Gmail Accounts (<span id="admCurrentServerLabel">Server 1</span>)</span>
                             <button class="btn-mini-tool" onclick="loadAdminStats()">Refresh</button>
                         </div>
                         <div style="max-height:240px;overflow-y:auto;">
                             <table class="adm-table-wrap">
-                                <thead>
-                                    <tr>
-                                        <th>Gmail</th>
-                                        <th>Status</th>
-                                        <th>Used</th>
-                                        <th>Today</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admAccountsTbody">
-                                    <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
-                                </tbody>
+--------------------------------------------------------<thead>
+--------------------------------------------------------<tr>
+--------------------------------------------------------<th>Gmail</th>
+--------------------------------------------------------<th>Status</th>
+--------------------------------------------------------<th>Used</th>
+--------------------------------------------------------<th>Today</th>
+--------------------------------------------------------<th>Action</th>
+--------------------------------------------------------</tr>
+--------------------------------------------------------</thead>
+--------------------------------------------------------<tbody id="admAccountsTbody">
+--------------------------------------------------------<tr>
+--------------------------------------------------------<td colspan="5" style="text-align:center;">Loading...</td>
+--------------------------------------------------------</tr>
+--------------------------------------------------------</tbody>
                             </table>
                         </div>
                     </div>
 
+                    <!-- TAB 2: ADD GMAIL (WITH SERVER 1-3 SELECTION) -->
                     <div id="admSectionAdd" style="display:none;">
-                        <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:10px;">
+                        <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;">
                             Connect a Gmail account to generate aliases and receive Nomad emails.
                         </p>
-                        <input type="email" id="admNewGmailInput" class="adm-text-input" placeholder="example@gmail.com (optional)" style="margin-bottom:10px;" />
+                        
+                        <!-- Target Server Selector -->
+                        <div style="margin-bottom:12px;">
+                            <label style="font-size:0.75rem;color:#FDA4AF;display:block;margin-bottom:4px;font-weight:700;">Select Target Server:</label>
+                            <select id="admAddServerSelect" class="adm-text-input" style="padding:8px 12px;">
+--------------------------------------------------------<option value="1">Server 1 (Primary)</option>
+--------------------------------------------------------<option value="2">Server 2 (Friend)</option>
+--------------------------------------------------------<option value="3">Server 3 (Backup)</option>
+                            </select>
+                        </div>
+
+                        <input type="email" id="admNewGmailInput" class="adm-text-input"
+                            placeholder="example@gmail.com (optional)" style="margin-bottom:10px;" />
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-                            <input type="checkbox" id="admNewGmailVisible" checked style="width:15px;height:15px;accent-color:var(--crimson);" />
+                            <input type="checkbox" id="admNewGmailVisible" checked
+--------------------------------------------------------style="width:15px;height:15px;accent-color:var(--crimson);" />
                             <label for="admNewGmailVisible" style="font-size:0.8rem;color:var(--text-secondary);">Show in account dropdown</label>
                         </div>
                         <button class="btn-crimson-pill" style="width:100%;" onclick="admAddGmailAccount()">
@@ -1153,29 +1335,44 @@
                         </button>
                     </div>
 
+                    <!-- TAB 3: SERVER 1-3 CONFIGURATION -->
                     <div id="admSectionConfig" style="display:none;">
-                        <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:8px;">
-                            Backend Server URL:
+                        <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:12px;">
+                            Configure backend server URLs for yourself and your friends:
                         </p>
-                        <input type="url" id="admBackendUrlInput" class="adm-text-input" placeholder="https://mailshot-0y8g.onrender.com" />
-                        <button class="btn-crimson-pill" style="width:100%;margin-top:12px;" onclick="saveBackendUrl()">Save URL</button>
+                        <div style="display:flex;flex-direction:column;gap:12px;">
+                            <div>
+--------------------------------------------------------<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 1 (Your Server):</label>
+--------------------------------------------------------<input type="url" id="admServer1UrlInput" class="adm-text-input" placeholder="https://mailshot-0y8g.onrender.com" />
+                            </div>
+                            <div>
+--------------------------------------------------------<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 2 (Friend's Server):</label>
+--------------------------------------------------------<input type="url" id="admServer2UrlInput" class="adm-text-input" placeholder="https://friend-mailshot.onrender.com" />
+                            </div>
+                            <div>
+--------------------------------------------------------<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 3 (Extra / Backup Server):</label>
+--------------------------------------------------------<input type="url" id="admServer3UrlInput" class="adm-text-input" placeholder="https://extra-mailshot.onrender.com" />
+                            </div>
+                            <button class="btn-crimson-pill" style="width:100%;margin-top:4px;" onclick="saveServerUrls()">Save All Server URLs</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- QR MODAL -->
+    <!-- QR & DETAILS MODAL -->
     <div class="modal-backdrop" id="qrModalOverlay">
         <div class="modal-box" style="max-width:380px;text-align:center;">
             <div class="modal-header-row">
-                <h2>eSIM QR Code</h2>
-                <button class="modal-close" onclick="closeQrModal()">✕</button>
+                <h2 id="modalQrTitle">eSIM Installation Details</h2>
+                <button class="modal-close" onclick="closeQrModal()">&times;</button>
             </div>
             <div class="modal-inner" style="align-items:center;">
-                <img id="modalQrImg" src="" alt="eSIM QR Code" style="width:230px;height:230px;border-radius:16px;background:white;padding:12px;" />
-                <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-secondary);word-break:break-all;" id="modalLpaLabel"></div>
-                <button class="btn-crimson-pill" style="width:100%;" onclick="copyActiveLpa()">Copy LPA Code</button>
+                <img id="modalQrImg" src="" alt="eSIM QR Code"
+                    style="width:230px;height:230px;border-radius:14px;background:white;padding:12px;max-width:100%;object-fit:contain;" />
+                <div id="modalLpaLabel" style="width:100%;padding:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;"></div>
+                <button class="btn-crimson-pill" id="modalCopyCodeBtn" style="width:100%;margin-top:8px;">Copy Code</button>
             </div>
         </div>
     </div>
@@ -1184,8 +1381,9 @@
     <div class="modal-backdrop" id="emailModalOverlay">
         <div class="modal-box" style="max-width:640px;height:82dvh;">
             <div class="modal-header-row">
-                <h2 id="emailModalSubject" style="font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Email</h2>
-                <button class="modal-close" onclick="closeEmailModal()">✕</button>
+                <h2 id="emailModalSubject"
+                    style="font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Email</h2>
+                <button class="modal-close" onclick="closeEmailModal()">&times;</button>
             </div>
             <div class="modal-inner" style="flex:1;overflow:hidden;display:flex;flex-direction:column;padding:14px;">
                 <div id="emailModalFrom" style="font-size:0.72rem;color:var(--text-muted);margin-bottom:8px;"></div>
@@ -1202,14 +1400,26 @@
         <span id="toastMessage">Copied!</span>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════════════════
-         JAVASCRIPT LOGIC (ALL BACKEND & SUPABASE FEATURES INTACT)
-    ═══════════════════════════════════════════════════════════════════ -->
+    <!-- --------------------------------------------------------
+         JAVASCRIPT LOGIC
+    -------------------------------------------------------- -->
     <script>
-        let BACKEND_URL = localStorage.getItem('nomad_backend_url') || 'https://mailshot-0y8g.onrender.com';
+        /* --------------------------------------------------------
+           SERVER 1-3 PROFILE ARCHITECTURE
+        -------------------------------------------------------- */
+        let activeServerId = localStorage.getItem('nomad_active_server_id') || '1';
+
+        function getServerUrl(id) {
+            if (id === '2') return localStorage.getItem('nomad_server_2_url') || '';
+            if (id === '3') return localStorage.getItem('nomad_server_3_url') || '';
+            // Server 1 fallback
+            return localStorage.getItem('nomad_server_1_url') || localStorage.getItem('nomad_backend_url') || 'https://mailshot-0y8g.onrender.com';
+        }
+
+        let BACKEND_URL = getServerUrl(activeServerId);
+
         const SUPABASE_URL = 'https://tlaazrkfluhrnpywjujr.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsYWF6cmtmbHVocm5weXdqdWpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0MjgzMDMsImV4cCI6MjEwOTAwNDMwM30.sK1q21ZY98xTuFZn8Etuxa2TJsJcSoG1KCPL9ktEDMI';
-
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
         let currentAlias = localStorage.getItem('nomad_active_alias') || '';
@@ -1225,7 +1435,14 @@
         let latestEsimData = null;
         let currentActiveOtp = '';
 
+        /* --------------------------------------------------------
+           INITIALIZATION
+        -------------------------------------------------------- */
         window.addEventListener('DOMContentLoaded', async () => {
+            // Restore server selector
+            const homeSel = document.getElementById('homeServerSelect');
+            if (homeSel) homeSel.value = activeServerId;
+
             setEsimTarget(esimTargetMode, false);
             await loadAvailableGmails();
 
@@ -1240,9 +1457,43 @@
             updateDailyLimitUI();
         });
 
+        /* Switch active server from homepage */
+        function onSwitchServer(newId) {
+            activeServerId = newId;
+            localStorage.setItem('nomad_active_server_id', newId);
+
+            const url = getServerUrl(newId);
+            if (!url) {
+                showToast(`Server ${newId} has no URL set. Configure in Admin Settings.`);
+                BACKEND_URL = '';
+            } else {
+                BACKEND_URL = url;
+                showToast(`Switched to Server ${newId}`);
+            }
+
+            const admServerLabel = document.getElementById('admCurrentServerLabel');
+            if (admServerLabel) admServerLabel.textContent = `Server ${newId}`;
+
+            const admSel = document.getElementById('admAddServerSelect');
+            if (admSel) admSel.value = newId;
+
+            // Clear current alias session when switching servers
+            currentAlias = '';
+            localStorage.removeItem('nomad_active_alias');
+            updateActiveAliasUI('');
+            emails = [];
+            renderEmptyStream();
+            loadAvailableGmails();
+        }
+
         async function loadAvailableGmails() {
             const select = document.getElementById('baseGmailSelect');
             select.innerHTML = '<option value="">Loading...</option>';
+
+            if (!BACKEND_URL) {
+                select.innerHTML = '<option value="">Server URL not set</option>';
+                return;
+            }
 
             try {
                 const r = await fetch(BACKEND_URL + '/api/public/gmail-accounts');
@@ -1505,7 +1756,7 @@
                         handleIncomingNomadAutoActions(emails[0]);
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
         }
 
         function manualRefreshEmails() {
@@ -1600,6 +1851,7 @@
             return /esim|activation code|sm-dp\+|qr code|lpa:1\$|iccid|manual installation/i.test(text);
         }
 
+        /* Clean eSIM parser guaranteeing exact clean single codes */
         function parseEsimContent(content) {
             if (!content) return null;
 
@@ -1610,9 +1862,9 @@
             let actCode = actMatch ? actMatch[1].trim() : '';
 
             let lpa = '';
-            const lpaMatch = content.match(/(LPA:1\$[^\s<>"']+)/i);
+            const lpaMatch = content.match(/(LPA:1\$[a-zA-Z0-9.-]+\$[a-zA-Z0-9-_$]+)/i) || content.match(/(LPA:1\$[^\s<>"']+)/i);
             if (lpaMatch) {
-                lpa = lpaMatch[1].trim();
+                lpa = lpaMatch[1].replace(/["'<>\s;,].*$/, '').trim();
             } else if (actCode) {
                 lpa = `LPA:1$${smdp}$${actCode}`;
             }
@@ -1652,11 +1904,9 @@
                 lastCopiedToken = esim.lpa;
 
                 if (esimTargetMode === 'android') {
-                    autoCopyText(esim.lpa, 'Android LPA');
+                    autoCopyText(esim.lpa, 'Android/Windows LPA');
                 } else if (esimTargetMode === 'ios') {
                     autoCopyText(esim.activationCode || esim.lpa, 'iOS Code');
-                } else if (esimTargetMode === 'windows') {
-                    autoCopyText(esim.lpa, 'Windows LPA');
                 } else if (esimTargetMode === 'qr') {
                     openQrModal();
                 }
@@ -1667,7 +1917,7 @@
             if (!text) return;
             fallbackCopyText(text);
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).catch(() => {});
+                navigator.clipboard.writeText(text).catch(() => { });
             }
             showToast(`${label} copied!`);
         }
@@ -1681,7 +1931,7 @@
             document.body.appendChild(ta);
             ta.focus();
             ta.select();
-            try { document.execCommand('copy'); } catch (e) {}
+            try { document.execCommand('copy'); } catch (e) { }
             document.body.removeChild(ta);
         }
 
@@ -1734,10 +1984,13 @@
                     `;
                 }
                 if (esim) {
+                    const isIos = (esimTargetMode === 'ios');
+                    const code = isIos ? (esim.activationCode || esim.lpa) : esim.lpa;
+                    const codeName = isIos ? 'iOS Code' : 'LPA Code';
                     chipHtml += `
                         <span class="tag-esim-badge">
                             eSIM Ready
-                            <button class="tag-btn-copy" onclick="event.stopPropagation(); autoCopyText('${escHtml(esim.lpa)}', 'LPA')">Copy LPA</button>
+                            <button class="tag-btn-copy" onclick="event.stopPropagation(); autoCopyText('${escHtml(code)}', '${codeName}')">Copy</button>
                         </span>
                     `;
                 }
@@ -1747,8 +2000,8 @@
                         <div class="email-icon-box">N</div>
                         <div class="email-body-col">
                             <div class="email-meta-line">
-                                <span class="email-sender-title">${escHtml(e.sender)}</span>
-                                <span class="email-timestamp">${escHtml(e.time)}</span>
+--------------------------------------------------------<span class="email-sender-title">${escHtml(e.sender)}</span>
+--------------------------------------------------------<span class="email-timestamp">${escHtml(e.time)}</span>
                             </div>
                             <div class="email-subject-text">${escHtml(e.subject)}</div>
                             <div class="email-tags-row">${chipHtml}</div>
@@ -1798,19 +2051,38 @@
             `;
         }
 
+        /* Displays only the single code matching the user's selected device */
         function renderInspectorEsim(esim) {
-            document.getElementById('inspectorHeadline').textContent = 'eSIM Ready';
+            document.getElementById('inspectorHeadline').textContent = 'eSIM Captured';
             const panel = document.getElementById('inspectorPanel');
-            panel.innerHTML = `
-                <div style="min-width:0;flex:1;">
-                    <div style="font-size:0.68rem;color:#6EE7B7;font-weight:700;">LPA Code Captured</div>
-                    <div style="font-family:var(--font-mono);font-size:0.76rem;color:#FFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;">${escHtml(esim.lpa)}</div>
-                </div>
-                <div style="display:flex;gap:5px;flex-shrink:0;">
-                    <button class="btn-copy-small" onclick="autoCopyText('${escHtml(esim.lpa)}', 'LPA')">Copy LPA</button>
-                    <button class="btn-copy-small" onclick="openQrModal()">QR</button>
-                </div>
-            `;
+            const isIos = (esimTargetMode === 'ios');
+
+            if (isIos) {
+                const code = esim.activationCode || esim.lpa;
+                panel.innerHTML = `
+                    <div style="min-width:0;flex:1;">
+                        <div style="font-size:0.68rem;color:#6EE7B7;font-weight:700;">iOS Code Ready</div>
+                        <div style="font-family:var(--font-mono);font-size:0.76rem;color:#FFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;">${escHtml(code)}</div>
+                    </div>
+                    <div style="display:flex;gap:5px;flex-shrink:0;">
+                        <button class="btn-copy-small" onclick="autoCopyText('${escHtml(code)}', 'iOS Code')">Copy</button>
+                        <button class="btn-copy-small" onclick="openQrModal()">QR</button>
+                    </div>
+                `;
+            } else {
+                // Android / Windows LPA
+                const lpa = esim.lpa || esim.activationCode;
+                panel.innerHTML = `
+                    <div style="min-width:0;flex:1;">
+                        <div style="font-size:0.68rem;color:#6EE7B7;font-weight:700;">Android/Windows LPA Ready</div>
+                        <div style="font-family:var(--font-mono);font-size:0.76rem;color:#FFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;">${escHtml(lpa)}</div>
+                    </div>
+                    <div style="display:flex;gap:5px;flex-shrink:0;">
+                        <button class="btn-copy-small" onclick="autoCopyText('${escHtml(lpa)}', 'LPA')">Copy</button>
+                        <button class="btn-copy-small" onclick="openQrModal()">QR</button>
+                    </div>
+                `;
+            }
         }
 
         function handleInspectorAction() {
@@ -1823,13 +2095,11 @@
             }
         }
 
-        function copyActiveLpa() {
-            if (latestEsimData && latestEsimData.lpa) {
-                autoCopyText(latestEsimData.lpa, 'LPA');
-            }
-        }
-
+        /* Merged Android & Windows: 3 modes total */
         function setEsimTarget(mode, notify = true) {
+            // Normalize windows to android since they use identical LPA code
+            if (mode === 'windows') mode = 'android';
+
             esimTargetMode = mode;
             localStorage.setItem('nomad_esim_target', mode);
 
@@ -1837,21 +2107,27 @@
             const map = {
                 android: 'pillTargetAndroid',
                 ios: 'pillTargetIos',
-                windows: 'pillTargetWindows',
                 qr: 'pillTargetQr'
             };
             const activeEl = document.getElementById(map[mode]);
             if (activeEl) activeEl.classList.add('active');
 
             const labelMap = {
-                android: 'Auto-copy: Android LPA',
-                ios: 'Auto-copy: iOS Code',
-                windows: 'Auto-copy: Windows LPA',
+                android: 'Auto-copy: Android / Windows LPA',
+                ios: 'Auto-copy: iOS Activation Code',
                 qr: 'Auto-open: QR Code'
             };
             document.getElementById('autoCopyTargetLabel').textContent = labelMap[mode] || '';
 
-            if (notify) showToast(`Mode: ${mode.toUpperCase()}`);
+            // Update inspector card immediately to show device-specific code
+            if (latestEsimData) {
+                renderInspectorEsim(latestEsimData);
+            }
+
+            if (notify) {
+                const name = mode === 'android' ? 'Android / Windows' : mode.toUpperCase();
+                showToast(`Mode: ${name}`);
+            }
         }
 
         function openEmailDetail(idx) {
@@ -1859,7 +2135,7 @@
             if (!e) return;
 
             document.getElementById('emailModalSubject').textContent = e.subject;
-            document.getElementById('emailModalFrom').textContent = `From: ${e.sender} <${e.senderEmail}> • ${e.fullDate}`;
+            document.getElementById('emailModalFrom').textContent = `From: ${e.sender} <${e.senderEmail}> &bull; ${e.fullDate}`;
 
             const otp = detectVerificationCode(e.subject, e.body);
             const otpSec = document.getElementById('emailModalOtpSection');
@@ -1893,13 +2169,44 @@
             document.getElementById('emailModalOverlay').classList.remove('open');
         }
 
+        /* Displays only the single code corresponding to the selected device */
         function openQrModal() {
-            if (!latestEsimData || !latestEsimData.qrImg) {
-                showToast('No eSIM QR code available yet');
+            if (!latestEsimData) {
+                showToast('No eSIM code received yet');
                 return;
             }
-            document.getElementById('modalQrImg').src = latestEsimData.qrImg;
-            document.getElementById('modalLpaLabel').textContent = latestEsimData.lpa || '';
+            const imgEl = document.getElementById('modalQrImg');
+            if (latestEsimData.qrImg) {
+                imgEl.src = latestEsimData.qrImg;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            const isIos = (esimTargetMode === 'ios');
+            const labelEl = document.getElementById('modalLpaLabel');
+            const copyBtn = document.getElementById('modalCopyCodeBtn');
+
+            if (isIos) {
+                const code = latestEsimData.activationCode || latestEsimData.lpa;
+                labelEl.innerHTML = `
+                    <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:3px;font-weight:700;">iOS Activation Code</div>
+                    <div style="font-family:var(--font-mono);font-size:0.84rem;color:#FFF;word-break:break-all;font-weight:700;">${escHtml(code)}</div>
+                    ${latestEsimData.smdp ? `<div style="font-size:0.68rem;color:var(--text-muted);margin-top:4px;">SM-DP+: ${escHtml(latestEsimData.smdp)}</div>` : ''}
+                `;
+                copyBtn.textContent = 'Copy iOS Code';
+                copyBtn.onclick = () => autoCopyText(code, 'iOS Activation Code');
+            } else {
+                // Android / Windows
+                const lpa = latestEsimData.lpa || latestEsimData.activationCode;
+                labelEl.innerHTML = `
+                    <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:3px;font-weight:700;">Android / Windows LPA Code</div>
+                    <div style="font-family:var(--font-mono);font-size:0.8rem;color:#FFF;word-break:break-all;font-weight:700;">${escHtml(lpa)}</div>
+                `;
+                copyBtn.textContent = 'Copy LPA Code';
+                copyBtn.onclick = () => autoCopyText(lpa, 'Android/Windows LPA');
+            }
+
             document.getElementById('qrModalOverlay').classList.add('open');
         }
 
@@ -1935,8 +2242,22 @@
         function showAdminContent() {
             document.getElementById('adminAuthLock').style.display = 'none';
             document.getElementById('adminPanelContent').style.display = 'block';
-            const input = document.getElementById('admBackendUrlInput');
-            if (input) input.value = BACKEND_URL;
+
+            // Populate all 3 server inputs
+            const s1 = document.getElementById('admServer1UrlInput');
+            const s2 = document.getElementById('admServer2UrlInput');
+            const s3 = document.getElementById('admServer3UrlInput');
+
+            if (s1) s1.value = getServerUrl('1');
+            if (s2) s2.value = getServerUrl('2');
+            if (s3) s3.value = getServerUrl('3');
+
+            const admSel = document.getElementById('admAddServerSelect');
+            if (admSel) admSel.value = activeServerId;
+
+            const admServerLabel = document.getElementById('admCurrentServerLabel');
+            if (admServerLabel) admServerLabel.textContent = `Server ${activeServerId}`;
+
             loadAdminStats();
         }
 
@@ -1950,15 +2271,17 @@
             if (tab === 'accounts') loadAdminStats();
         }
 
-        function saveBackendUrl() {
-            const val = document.getElementById('admBackendUrlInput').value.trim();
-            if (!val.startsWith('http')) {
-                showToast('Enter a valid URL');
-                return;
-            }
-            BACKEND_URL = val;
-            localStorage.setItem('nomad_backend_url', val);
-            showToast('Saved server URL');
+        function saveServerUrls() {
+            const s1 = document.getElementById('admServer1UrlInput').value.trim();
+            const s2 = document.getElementById('admServer2UrlInput').value.trim();
+            const s3 = document.getElementById('admServer3UrlInput').value.trim();
+
+            if (s1) localStorage.setItem('nomad_server_1_url', s1);
+            if (s2) localStorage.setItem('nomad_server_2_url', s2);
+            if (s3) localStorage.setItem('nomad_server_3_url', s3);
+
+            BACKEND_URL = getServerUrl(activeServerId);
+            showToast('Saved all server configurations');
             switchAdminTab('accounts');
             loadAvailableGmails();
         }
@@ -1967,49 +2290,59 @@
             const tbody = document.getElementById('admAccountsTbody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
 
+            const targetUrl = getServerUrl(activeServerId);
+            if (!targetUrl) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#FDA4AF;">Server URL not configured</td></tr>';
+                return;
+            }
+
             try {
-                const r = await fetch(BACKEND_URL + '/api/admin/gmail-accounts/stats', {
+                const r = await fetch(targetUrl + '/api/admin/gmail-accounts/stats', {
                     headers: { 'x-admin-secret': adminSecret }
                 });
                 const data = await r.json();
 
                 if (!data.ok || !data.stats) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#FDA4AF;">Failed to load</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#FDA4AF;">Failed to load accounts</td></tr>';
                     return;
                 }
 
                 if (!data.stats.length) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px;">No accounts yet.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:14px;">No accounts on this server. Add one via "+ Add Gmail".</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = data.stats.map(s => {
                     const statusBadge = s.authenticated
-                        ? '<span style="color:#6EE7B7;font-weight:700;">Linked</span>'
+                        ? '<span style="color:#6EE7B7;font-weight:700;">&check; Linked</span>'
                         : `<button onclick="admLinkAccount('${escHtml(s.email)}')" class="tag-btn-copy">Link</button>`;
 
                     return `
                         <tr>
-                            <td><strong style="color:#FFF;">${escHtml(s.email)}</strong></td>
+                            <td><strong>${escHtml(s.email)}</strong></td>
                             <td>${statusBadge}</td>
-                            <td>${s.used_variants}/${s.total_variants}</td>
-                            <td>${s.used_today ? '<span style="color:#FDA4AF;">Used</span>' : '<span style="color:#6EE7B7;">Ready</span>'}</td>
+                            <td>${s.used_variants} / ${s.total_variants}</td>
+                            <td>${s.used_today ? '<span style="color:#FDA4AF;">Used</span>' : '<span style="color:#6EE7B7;">1/1</span>'}</td>
                             <td>
-                                <button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-mini-tool" style="margin-right:4px;">Reset</button>
-                                <button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-mini-tool" style="color:#FDA4AF;">Delete</button>
+--------------------------------------------------------<button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-mini-tool" style="margin-right:4px;">Reset</button>
+--------------------------------------------------------<button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-mini-tool" style="color:#FDA4AF;">Del</button>
                             </td>
                         </tr>
                     `;
                 }).join('');
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Server error</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error communicating with server</td></tr>';
             }
         }
 
         function admLinkAccount(email) {
-            showToast('Opening Google Sign-In...');
+            const targetUrl = getServerUrl(activeServerId);
+            showToast('Redirecting to Google Sign-In...');
             const returnUrl = window.location.origin + window.location.pathname;
-            window.location.href = `${BACKEND_URL}/auth/login?account=${encodeURIComponent(email || '')}&return_to=${encodeURIComponent(returnUrl)}`;
+            const loginUrl = `${targetUrl}/auth/login?account=${encodeURIComponent(email || '')}&return_to=${encodeURIComponent(returnUrl)}`;
+            setTimeout(() => {
+                window.location.href = loginUrl;
+            }, 300);
         }
 
         async function admAddGmailAccount() {
@@ -2018,9 +2351,18 @@
             const visibleCheckbox = document.getElementById('admNewGmailVisible');
             const visible = visibleCheckbox ? visibleCheckbox.checked : true;
 
+            const selectedServerId = document.getElementById('admAddServerSelect') ? document.getElementById('admAddServerSelect').value : activeServerId;
+            const targetServerUrl = getServerUrl(selectedServerId);
+
+            if (!targetServerUrl) {
+                alert(`Server ${selectedServerId} URL is not set. Please enter it in Server URLs tab.`);
+                switchAdminTab('config');
+                return;
+            }
+
             if (email && email.includes('@')) {
                 try {
-                    await fetch(BACKEND_URL + '/api/admin/gmail-accounts/add', {
+                    await fetch(targetServerUrl + '/api/admin/gmail-accounts/add', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -2028,17 +2370,22 @@
                         },
                         body: JSON.stringify({ email, visible })
                     });
-                } catch (e) {}
+                } catch (e) { }
             }
 
-            showToast('Opening Google Sign-In...');
+            showToast(`Redirecting to Google on Server ${selectedServerId}...`);
             const returnUrl = window.location.origin + window.location.pathname;
-            window.location.href = `${BACKEND_URL}/auth/login?account=${encodeURIComponent(email)}&return_to=${encodeURIComponent(returnUrl)}`;
+            const loginUrl = `${targetServerUrl}/auth/login?account=${encodeURIComponent(email)}&return_to=${encodeURIComponent(returnUrl)}`;
+            setTimeout(() => {
+                window.location.href = loginUrl;
+            }, 300);
         }
 
         async function admResetDaily(account) {
+            if (!confirm(`Reset today's daily generation limit for ${account}?`)) return;
+            const targetUrl = getServerUrl(activeServerId);
             try {
-                await fetch(BACKEND_URL + '/api/admin/gmail-accounts/reset-daily', {
+                await fetch(targetUrl + '/api/admin/gmail-accounts/reset-daily', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2051,15 +2398,17 @@
                 localStorage.setItem('nomad_daily_usage', JSON.stringify(map));
                 updateDailyLimitUI();
                 loadAdminStats();
-                showToast(`Reset ${account}`);
+                showToast(`Reset limit for ${account}`);
             } catch (e) {
-                showToast('Reset failed');
+                showToast('Failed to reset daily limit');
             }
         }
 
         async function admDeleteAccount(account) {
+            if (!confirm(`Are you sure you want to remove ${account}?`)) return;
+            const targetUrl = getServerUrl(activeServerId);
             try {
-                await fetch(BACKEND_URL + '/api/admin/gmail-accounts/remove', {
+                await fetch(targetUrl + '/api/admin/gmail-accounts/remove', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2069,7 +2418,7 @@
                 });
                 loadAdminStats();
                 loadAvailableGmails();
-                showToast(`Removed ${account}`);
+                showToast(`Deleted ${account}`);
             } catch (e) {
                 showToast('Delete failed');
             }
@@ -2077,9 +2426,12 @@
 
         function showToast(msg) {
             const banner = document.getElementById('toastBanner');
-            document.getElementById('toastMessage').textContent = msg;
+            const text = document.getElementById('toastMessage');
+            text.textContent = msg;
             banner.classList.add('show');
-            setTimeout(() => banner.classList.remove('show'), 2500);
+            setTimeout(() => {
+                banner.classList.remove('show');
+            }, 2500);
         }
 
         function escHtml(str) {

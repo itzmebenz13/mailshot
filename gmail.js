@@ -26,13 +26,26 @@ require('dotenv').config();
 const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly'];
 
 // ── Load credentials ──
-let credentialsData;
+let credentialsData = { web: { client_id: '', client_secret: '', redirect_uris: [] } };
 if (process.env.CREDENTIALS_JSON) {
-  credentialsData = JSON.parse(process.env.CREDENTIALS_JSON);
+  try {
+    credentialsData = JSON.parse(process.env.CREDENTIALS_JSON);
+  } catch (err) {
+    console.error('[gmail] Failed to parse CREDENTIALS_JSON:', err.message);
+  }
+} else if (fs.existsSync('credentials.json')) {
+  try {
+    credentialsData = JSON.parse(fs.readFileSync('credentials.json', 'utf8'));
+  } catch (err) {
+    console.error('[gmail] Failed to parse credentials.json:', err.message);
+  }
 } else {
-  credentialsData = JSON.parse(fs.readFileSync('credentials.json'));
+  console.warn('[gmail] Warning: No CREDENTIALS_JSON environment variable or credentials.json file found. Please set CREDENTIALS_JSON in Render.');
 }
-const { client_id, client_secret, redirect_uris } = credentialsData.web;
+const webData = credentialsData.web || credentialsData.installed || {};
+const client_id = webData.client_id || '';
+const client_secret = webData.client_secret || '';
+const redirect_uris = webData.redirect_uris || [];
 
 // ── Redirect URI (Auto-detects Render, Railway, or custom domain) ──
 const rawDomain = process.env.RENDER_EXTERNAL_HOSTNAME || process.env.RAILWAY_PUBLIC_DOMAIN || process.env.APP_DOMAIN || 'mailshot-0y8g.onrender.com';
@@ -44,10 +57,9 @@ const redirectUri = process.env.RENDER_EXTERNAL_URL
 
 // ── Supabase client ──
 const { createClient } = require('@supabase/supabase-js');
-const _sb = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+const _sbUrl = process.env.SUPABASE_URL || 'https://pqxqsvkliumopyotloke.supabase.co';
+const _sbKey = process.env.SUPABASE_SERVICE_KEY || 'placeholder_key_set_in_render_env';
+const _sb = createClient(_sbUrl, _sbKey);
 
 // ────────────────────────────────────────────────────────────
 // In-memory token cache: Map<accountEmail, oAuth2Client>

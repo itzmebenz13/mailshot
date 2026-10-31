@@ -1211,13 +1211,24 @@
         }
 
         .tag-btn-copy {
-            background: var(--text);
-            color: var(--bg);
-            border: none;
-            padding: 3px 9px;
-            border-radius: 6px;
-            font-size: .66rem;
-            font-weight: 800
+            background: linear-gradient(180deg, var(--accent), var(--accent-2));
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, .2);
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: .74rem;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, .3)
+        }
+
+        .tag-btn-copy:active {
+            transform: scale(.95)
+        }
+
+        .tag-otp {
+            font-size: .95rem;
+            padding: 4px 4px 4px 14px;
+            gap: 12px
         }
 
         .tag-auto-note {
@@ -2040,8 +2051,8 @@
             }
 
             .tag-btn-copy {
-                padding: 2px 7px;
-                font-size: .62rem
+                padding: 6px 14px;
+                font-size: .72rem
             }
 
             .stream-empty {
@@ -3368,27 +3379,48 @@
             }
         }
 
-        function autoCopyText(text, label) {
-            if (!text) return;
-            fallbackCopyText(text);
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).catch(() => { });
-            }
-            showToast(`${label} copied!`);
-        }
+        let pendingCopy = null;
 
-        function fallbackCopyText(text) {
+        function tryCopy(text) {
+            let ok = false;
             const ta = document.createElement('textarea');
             ta.value = text;
-            ta.style.position = 'fixed';
-            ta.style.opacity = '0';
-            ta.style.pointerEvents = 'none';
+            ta.setAttribute('readonly', '');
+            ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;font-size:16px';
             document.body.appendChild(ta);
-            ta.focus();
-            ta.select();
-            try { document.execCommand('copy'); } catch (e) { }
+            try {
+                ta.focus({ preventScroll: true });
+                ta.select();
+                ta.setSelectionRange(0, text.length);
+                ok = document.execCommand('copy');
+            } catch (e) { ok = false; }
             document.body.removeChild(ta);
+            return ok;
         }
+
+        function autoCopyText(text, label, silentFail) {
+            if (!text) return;
+            const done = () => { pendingCopy = null; showToast(`${label} copied!`); };
+            const fail = () => {
+                if (tryCopy(text)) { done(); return; }
+                pendingCopy = { text, label };
+                if (!silentFail) showToast(`Tap anywhere to copy ${label}`);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(fail);
+            } else {
+                fail();
+            }
+        }
+
+        /* Phones often block copying without a tap: finish the copy on the very next touch */
+        ['pointerdown', 'touchstart', 'click'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (!pendingCopy) return;
+                const p = pendingCopy;
+                if (tryCopy(p.text)) { pendingCopy = null; showToast(`${p.label} copied!`); }
+            }, { capture: true, passive: true });
+        });
 
         function showOtpAlertBar(code) {
             currentActiveOtp = code;
@@ -3436,7 +3468,6 @@
                             ${otp}
                             <button class="tag-btn-copy" onclick="event.stopPropagation(); autoCopyText('${otp}', 'Code')">Copy</button>
                         </span>
-                        <span class="tag-auto-note">Auto-copied</span>
                     `;
                 }
                 if (esim) {
@@ -3501,7 +3532,7 @@
             const panel = document.getElementById('inspectorPanel');
             panel.innerHTML = `
                 <div>
-                    <div class="ins-ok">Auto-copied to clipboard</div>
+                    <div class="ins-ok">Code ready · tap the button to copy</div>
                     <div class="code-matrix-val">${otp}</div>
                 </div>
                 <button class="btn-white-circle" onclick="autoCopyText('${otp}', 'Code')" title="Copy Code">${COPY_SVG}</button>

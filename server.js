@@ -1661,7 +1661,7 @@ function generateMax2DotVariants(username) {
 app.post('/api/generate-alias', async function (req, res) {
   try {
     const gmailAccount = (req.body.gmail_account || '').trim().toLowerCase();
-    const isAdmin = req.headers['x-admin-secret'] === (process.env.ADMIN_SECRET || 'JM-2026');
+    const isAdmin = req.headers['x-admin-secret'] === (process.env.ADMIN_SECRET || 'SM-2026');
     if (!gmailAccount) return res.status(400).json({ ok: false, error: 'Missing gmail_account' });
 
     // ── Verify account exists and is visible ──

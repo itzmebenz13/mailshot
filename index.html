@@ -674,6 +674,8 @@
             cursor: pointer;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
+            text-align: center;
             gap: 5px;
         }
 
@@ -913,28 +915,40 @@
         .adm-tab-row {
             display: flex;
             gap: 6px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 12px;
             overflow-x: auto;
         }
 
         .adm-tab-btn {
+            flex: 1;
             background: transparent;
             border: 1px solid transparent;
             color: var(--text-muted);
             font-family: var(--font-display);
             font-weight: 700;
             font-size: 0.78rem;
-            padding: 5px 12px;
-            border-radius: 999px;
+            padding: 7px 12px;
+            border-radius: 8px;
             cursor: pointer;
             white-space: nowrap;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+
+        .adm-tab-btn:hover {
+            color: #FFF;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .adm-tab-btn.active {
-            background: rgba(225, 29, 72, 0.2);
-            border-color: rgba(225, 29, 72, 0.5);
+            background: linear-gradient(135deg, rgba(225, 29, 72, 0.25) 0%, rgba(159, 18, 57, 0.3) 100%);
+            border-color: rgba(225, 29, 72, 0.45);
             color: #FDA4AF;
+            box-shadow: 0 2px 10px rgba(225, 29, 72, 0.2);
         }
 
         .adm-table-wrap {
@@ -945,15 +959,136 @@
 
         .adm-table-wrap th {
             text-align: left;
-            padding: 8px 6px;
+            padding: 9px 8px;
             color: var(--text-muted);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-weight: 700;
+            font-size: 0.74rem;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
         .adm-table-wrap td {
-            padding: 9px 6px;
+            padding: 10px 8px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+
+        .adm-table-wrap tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .adm-badge-linked {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34D399;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
+        .adm-badge-linked svg {
+            stroke: #34D399;
+        }
+
+        .adm-btn-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60A5FA;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .adm-btn-link:hover {
+            background: rgba(59, 130, 246, 0.24);
+            color: #FFF;
+            border-color: rgba(59, 130, 246, 0.6);
+        }
+
+        .adm-slot-select {
+            background: rgba(10, 10, 14, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 6px;
+            color: #FFF;
+            padding: 3px 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+
+        .adm-slot-select:focus {
+            border-color: var(--crimson);
+            outline: none;
+        }
+
+        .adm-stat-pill {
+            display: inline-block;
+            padding: 2px 6px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .adm-badge-used {
+            display: inline-block;
+            padding: 2px 6px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #FDA4AF;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .adm-badge-avail {
+            display: inline-block;
+            padding: 2px 6px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: #6EE7B7;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .adm-icon-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            padding: 4px 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .adm-icon-btn:hover {
+            color: #FFF;
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .adm-icon-btn.danger:hover {
+            color: #FDA4AF;
+            background: rgba(225, 29, 72, 0.2);
+            border-color: rgba(225, 29, 72, 0.4);
         }
 
         .adm-text-input {
@@ -982,6 +1117,30 @@
 
         .btn-crimson-pill:hover {
             filter: brightness(1.08);
+        }
+
+        .btn-modal-cancel {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: var(--font-display);
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.15s;
+        }
+
+        .btn-modal-cancel:hover {
+            color: #FFF;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.28);
         }
 
         /* Toast Alert */
@@ -1259,7 +1418,13 @@
     <div class="modal-backdrop" id="adminModalOverlay">
         <div class="modal-box">
             <div class="modal-header-row">
-                <h2>Admin Settings</h2>
+                <h2 style="display:flex;align-items:center;gap:8px;">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    Admin Settings
+                </h2>
                 <button class="modal-close" onclick="closeAdminModal()">&times;</button>
             </div>
 
@@ -1283,9 +1448,15 @@
 
                     <!-- TAB 1: ACCOUNTS LIST -->
                     <div id="admSectionAccounts">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                             <span style="font-size:0.76rem;color:var(--text-muted);font-weight:700;">Connected Gmail Accounts (<span id="admCurrentServerLabel">All Slots</span>)</span>
-                            <button class="btn-mini-tool" onclick="loadAdminStats()">Refresh</button>
+                            <button class="adm-icon-btn" onclick="loadAdminStats()" style="padding:4px 8px;gap:5px;font-size:0.74rem;" title="Refresh Accounts">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="23 4 23 10 17 10" />
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                                </svg>
+                                Refresh
+                            </button>
                         </div>
                         <div style="max-height:240px;overflow-y:auto;">
                             <table class="adm-table-wrap">
@@ -1392,8 +1563,8 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
                     onkeydown="if(event.key==='Enter') verifyServer1Pin()" />
                 <div id="server1PinError" style="font-size:0.75rem;color:#FDA4AF;margin-bottom:10px;min-height:18px;"></div>
                 <div style="display:flex;gap:8px;width:100%;">
-                    <button class="btn-mini-tool" style="flex:1;padding:10px;" onclick="cancelServer1Pin()">Cancel</button>
-                    <button class="btn-crimson-pill" style="flex:1;padding:10px;" onclick="verifyServer1Pin()">Unlock</button>
+                    <button type="button" class="btn-modal-cancel" onclick="cancelServer1Pin()">Cancel</button>
+                    <button type="button" class="btn-crimson-pill" style="flex:1;padding:10px;display:flex;align-items:center;justify-content:center;text-align:center;" onclick="verifyServer1Pin()">Unlock</button>
                 </div>
             </div>
         </div>
@@ -2436,27 +2607,50 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
 
                 tbody.innerHTML = data.stats.map(s => {
                     const statusBadge = s.authenticated
-                        ? '<span style="color:#6EE7B7;font-weight:700;">&check; Linked</span>'
-                        : `<button onclick="admLinkAccount('${escHtml(s.email)}')" class="tag-btn-copy">Link</button>`;
+                        ? `<span class="adm-badge-linked">
+                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                               <polyline points="20 6 9 17 4 12"/>
+                             </svg>
+                             Linked
+                           </span>`
+                        : `<button onclick="admLinkAccount('${escHtml(s.email)}')" class="adm-btn-link" title="Authenticate with Google">
+                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                             </svg>
+                             Link
+                           </button>`;
 
                     const slot = getAccountServerSlot(s);
 
                     return `
                         <tr>
-                            <td><strong>${escHtml(s.email)}</strong></td>
+                            <td><strong style="color:#FFF;">${escHtml(s.email)}</strong></td>
                             <td>
-                                <select class="adm-text-input" style="padding:4px 8px;font-size:0.75rem;width:auto;cursor:pointer;" onchange="admChangeAccountSlot('${escHtml(s.email)}', this.value)">
+                                <select class="adm-slot-select" onchange="admChangeAccountSlot('${escHtml(s.email)}', this.value)">
                                     <option value="1" ${slot === '1' ? 'selected' : ''}>&#128274; Server 1</option>
                                     <option value="2" ${slot === '2' ? 'selected' : ''}>Server 2</option>
                                     <option value="3" ${slot === '3' ? 'selected' : ''}>Server 3</option>
                                 </select>
                             </td>
                             <td>${statusBadge}</td>
-                            <td>${s.used_variants} / ${s.total_variants}</td>
-                            <td>${s.used_today ? '<span style="color:#FDA4AF;">Used</span>' : '<span style="color:#6EE7B7;">1/1</span>'}</td>
+                            <td><span class="adm-stat-pill">${s.used_variants} / ${s.total_variants}</span></td>
+                            <td>${s.used_today ? '<span class="adm-badge-used">Used</span>' : '<span class="adm-badge-avail">1/1</span>'}</td>
                             <td>
-                                <button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-mini-tool" style="margin-right:4px;">Reset</button>
-                                <button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-mini-tool" style="color:#FDA4AF;">Del</button>
+                                <div style="display:flex;gap:4px;align-items:center;">
+                                    <button onclick="admResetDaily('${escHtml(s.email)}')" class="adm-icon-btn" title="Reset Today's Limit">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="23 4 23 10 17 10"/>
+                                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                                        </svg>
+                                    </button>
+                                    <button onclick="admDeleteAccount('${escHtml(s.email)}')" class="adm-icon-btn danger" title="Delete Account">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6"/>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;

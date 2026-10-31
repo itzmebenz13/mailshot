@@ -18,6 +18,11 @@
 
 'use strict';
 
+// Ensure WebSocket support for Supabase Realtime in Node environments
+if (!globalThis.WebSocket) {
+  try { globalThis.WebSocket = require('ws'); } catch (e) {}
+}
+
 const { google } = require('googleapis');
 const fs          = require('fs');
 require('dotenv').config();

@@ -1,16 +1,20 @@
 {
-  "name": "nomad-mailshot-server",
+  "name": "nomad-mailshot-backend",
   "version": "1.0.0",
+  "description": "Nomad eSIM and temporary Gmail alias backend",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
+    "@supabase/supabase-js": "^2.39.8",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "googleapis": "^134.0.0",
     "node-cron": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -34,10 +34,13 @@ if (process.env.CREDENTIALS_JSON) {
 }
 const { client_id, client_secret, redirect_uris } = credentialsData.web;
 
-// ── Redirect URI ──
-const redirectUri = process.env.RAILWAY_PUBLIC_DOMAIN
-  ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}/auth/callback`
-  : (redirect_uris && redirect_uris[0]) || 'http://localhost:3000/auth/callback';
+// ── Redirect URI (Auto-detects Render, Railway, or custom domain) ──
+const rawDomain = process.env.RENDER_EXTERNAL_HOSTNAME || process.env.RAILWAY_PUBLIC_DOMAIN || process.env.APP_DOMAIN;
+const redirectUri = process.env.RENDER_EXTERNAL_URL
+  ? `${process.env.RENDER_EXTERNAL_URL}/auth/callback`
+  : rawDomain
+    ? `https://${rawDomain.replace(/^https?:\/\//, '')}/auth/callback`
+    : (redirect_uris && redirect_uris[0]) || 'http://localhost:3000/auth/callback';
 
 // ── Supabase client ──
 const { createClient } = require('@supabase/supabase-js');

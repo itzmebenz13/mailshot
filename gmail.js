@@ -160,22 +160,26 @@ async function loadAllAccounts() {
  * Generate an OAuth URL for a specific Gmail account.
  * Uses login_hint so Google pre-selects that account.
  */
-function getAuthUrl(accountEmail, userId) {
+function getAuthUrl(accountEmail, returnTo) {
   const tempClient = new google.auth.OAuth2(client_id, client_secret, redirectUri);
-  const statePayload = { a: accountEmail || '', u: userId || '' };
+  const statePayload = {
+    a: accountEmail ? accountEmail.trim().toLowerCase() : '',
+    r: returnTo || 'https://itzmebenz13.github.io/mailshot/'
+  };
   const params = {
     access_type: 'offline',
     prompt: 'consent',
     scope: SCOPES,
-    state: Buffer.from(JSON.stringify(statePayload)).toString('base64') // passed back in ?state= on callback
+    include_granted_scopes: true,
+    state: Buffer.from(JSON.stringify(statePayload)).toString('base64')
   };
-  if (accountEmail) params.login_hint = accountEmail;
+  if (accountEmail) params.login_hint = accountEmail.trim().toLowerCase();
   return tempClient.generateAuthUrl(params);
 }
 
 /**
  * Exchange auth code for tokens and persist to Supabase.
- * accountEmail comes from the ?state= callback parameter.
+ * accountEmail comes from the ?state= callback parameter or Google Profile.
  */
 async function saveToken(code, stateStr) {
   const tempClient = new google.auth.OAuth2(client_id, client_secret, redirectUri);
@@ -185,29 +189,37 @@ async function saveToken(code, stateStr) {
   let userId = null;
   try {
     const parsed = JSON.parse(Buffer.from(stateStr, 'base64').toString('utf8'));
-    accountEmail = parsed.a;
+    accountEmail = parsed.a || '';
     userId = parsed.u || null;
   } catch (e) {
     accountEmail = stateStr; // fallback for old format
   }
 
-  // Determine actual account email from token if not provided
+  // Determine actual account email from Gmail profile
   let email = accountEmail;
-  if (!email) {
-    // Try to get profile from Gmail API
-    try {
-      tempClient.setCredentials(tokens);
-      const gmail = google.gmail({ version: 'v1', auth: tempClient });
-      const profile = await gmail.users.getProfile({ userId: 'me' });
+  try {
+    tempClient.setCredentials(tokens);
+    const gmail = google.gmail({ version: 'v1', auth: tempClient });
+    const profile = await gmail.users.getProfile({ userId: 'me' });
+    if (profile && profile.data && profile.data.emailAddress) {
       email = profile.data.emailAddress;
-    } catch (e) {
-      console.error('[gmail] Could not determine account email from token:', e.message);
-      throw new Error('Could not determine Gmail account email. Please specify it.');
     }
+  } catch (e) {
+    console.warn('[gmail] Could not determine account email from profile:', e.message);
   }
 
+  if (!email) {
+    throw new Error('Could not determine Gmail account email. Please specify it.');
+  }
+
+  email = email.trim().toLowerCase();
+
   // Upsert into Supabase
-  const upsertData = { email, tokens };
+  const upsertData = {
+    email,
+    tokens,
+    visible: true
+  };
   if (userId) upsertData.user_id = userId;
 
   const { error } = await _sb.from('gmail_accounts').upsert(
@@ -227,13 +239,14 @@ async function saveToken(code, stateStr) {
         { email, tokens: merged },
         { onConflict: 'email' }
       );
+      console.log(`[gmail] Auto-refreshed token saved for ${email}`);
     } catch (err) {
       console.error(`[gmail] Token save failed for ${email}:`, err.message);
     }
   });
   _clients.set(email, client);
 
-  console.log(`[gmail] Token saved for ${email}`);
+  console.log(`[gmail] Token successfully saved and active for ${email}`);
   return email;
 }
 

@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Nomad Mailshot — eSIM Registration & Verification Hub</title>
+    <title>Nomad Mailshot</title>
 
-    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <!-- Fonts: Plus Jakarta Sans, Inter, JetBrains Mono & Silkscreen (Dot-Matrix Numbers) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Silkscreen:wght@400;700&display=swap"
         rel="stylesheet">
 
     <!-- Supabase JS CDN -->
@@ -18,38 +18,23 @@
 
     <style>
         :root {
-            --bg-page: #dce5ee;
-            --tablet-bezel: #16181d;
-            --sidebar-bg: #181a20;
-            --sidebar-active: #fdc841;
-            --canvas-bg: #f8fafc;
-            --card-white: #ffffff;
-            --card-dark: #1a1c22;
-            --text-main: #111827;
-            --text-muted: #64748b;
-            --text-dim: #94a3b8;
+            --bg-dark: #070709;
+            --crimson: #E11D48;
+            --crimson-dark: #9F1239;
+            --amber: #EA580C;
+            --emerald: #10B981;
 
-            /* Learnify Inspired Pastel Palette */
-            --card-yellow: #fef08a;
-            --card-yellow-border: #fde047;
-            --card-purple: #e9d5ff;
-            --card-purple-border: #d8b4fe;
-            --card-blue: #bae6fd;
-            --card-blue-border: #7dd3fc;
+            --text-white: #FFFFFF;
+            --text-secondary: rgba(255, 255, 255, 0.72);
+            --text-muted: rgba(255, 255, 255, 0.45);
 
-            --accent-coral: #ff5c38;
-            --accent-coral-hover: #f04e28;
-            --accent-green: #10b981;
-            --accent-yellow: #f59e0b;
+            --border-glass: rgba(255, 255, 255, 0.14);
+            --border-highlight: rgba(255, 255, 255, 0.24);
 
-            --border-subtle: #e2e8f0;
-            --border-dark: #2d3139;
-            --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
-            --shadow-tablet: 0 25px 60px -15px rgba(15, 23, 42, 0.35);
-            --radius-pill: 9999px;
-            --radius-card: 22px;
-            --radius-inner: 16px;
+            --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-matrix: 'Silkscreen', monospace;
         }
 
         * {
@@ -59,1108 +44,906 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-page);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px 16px;
+        html, body {
+            height: 100dvh;
+            width: 100%;
+            overflow: hidden;
+            font-family: var(--font-sans);
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            user-select: none;
         }
 
-        /* Tablet Bezel Container (Reference UI) */
-        .tablet-frame {
-            width: 100%;
-            max-width: 1220px;
-            background: var(--tablet-bezel);
-            border-radius: 36px;
-            padding: 12px;
-            box-shadow: var(--shadow-tablet);
+        /* Paceform Atmospheric Horizon-to-Amber Mesh Background */
+        body {
+            background:
+                radial-gradient(circle at 80% 10%, rgba(112, 161, 215, 0.38) 0%, rgba(42, 82, 138, 0.16) 35%, transparent 65%),
+                radial-gradient(circle at 20% 35%, rgba(234, 88, 12, 0.28) 0%, rgba(159, 18, 57, 0.22) 45%, transparent 70%),
+                linear-gradient(180deg, #1e2d4a 0%, #120b0c 42%, #070709 100%);
             display: flex;
-            position: relative;
+            flex-direction: column;
+        }
+
+        /* Subtle Studio Grain */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           INSTANT OTP ALERT BAR (TOP)
+        ═══════════════════════════════════════════════════════════════════ */
+        .otp-alert-bar {
+            background: linear-gradient(90deg, #9F1239 0%, #E11D48 50%, #EA580C 100%);
+            color: #FFF;
+            padding: 8px 14px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+            font-family: var(--font-display);
+            font-size: 0.82rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .otp-alert-bar.visible {
+            display: flex;
+        }
+
+        .otp-alert-code {
+            font-family: var(--font-matrix);
+            background: rgba(0, 0, 0, 0.65);
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            letter-spacing: 0.1em;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           MAIN SINGLE-SCREEN APP SHELL (NO PAGE SCROLL)
+        ═══════════════════════════════════════════════════════════════════ */
+        .app-shell {
+            flex: 1;
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%;
             overflow: hidden;
         }
 
-        /* Left Sidebar */
-        .tablet-sidebar {
-            width: 64px;
-            background: var(--sidebar-bg);
-            border-radius: 26px 0 0 26px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 24px 0;
-            gap: 18px;
-            flex-shrink: 0;
-        }
-
-        .sb-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #94a3b8;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .sb-btn:hover {
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .sb-btn.active {
-            background: var(--sidebar-active);
-            color: #16181d;
-            box-shadow: 0 4px 12px rgba(253, 200, 65, 0.35);
-        }
-
-        .sb-btn svg {
-            width: 20px;
-            height: 20px;
-            stroke-width: 2.2;
-        }
-
-        .sb-spacer {
-            flex: 1;
-        }
-
-        /* Canvas (Main Inner Screen) */
-        .tablet-canvas {
-            flex: 1;
-            background: var(--canvas-bg);
-            border-radius: 26px;
-            padding: 24px 28px;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
-            max-height: 90vh;
-        }
-
-        /* Top Bar */
+        /* 1. COMPACT TOP BAR */
         .top-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .brand-title {
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .brand-title span.accent {
-            color: var(--accent-coral);
-        }
-
-        .top-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .search-pill {
-            display: flex;
-            align-items: center;
-            background: #ffffff;
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-pill);
-            padding: 6px 14px;
-            gap: 8px;
-            box-shadow: var(--shadow-sm);
-            width: 230px;
-        }
-
-        .search-pill input {
-            border: none;
-            outline: none;
-            background: transparent;
-            font-size: 0.82rem;
-            font-family: inherit;
-            width: 100%;
-            color: var(--text-main);
-        }
-
-        .search-btn {
-            background: var(--accent-coral);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+            gap: 10px;
             flex-shrink: 0;
         }
 
-        .search-btn svg {
-            width: 12px;
-            height: 12px;
-            stroke-width: 3;
-        }
-
-        .action-icon-btn {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 1px solid var(--border-subtle);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            cursor: pointer;
-            position: relative;
-            transition: all 0.15s;
-        }
-
-        .action-icon-btn:hover {
-            background: #f1f5f9;
-            color: var(--text-main);
-        }
-
-        .unread-dot {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 7px;
-            height: 7px;
-            background: var(--accent-coral);
-            border-radius: 50%;
-            border: 1.5px solid #fff;
-        }
-
-        .user-pill {
+        .brand {
             display: flex;
             align-items: center;
             gap: 9px;
-            padding: 4px 10px 4px 4px;
-            background: #ffffff;
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-pill);
-            cursor: pointer;
-            transition: all 0.15s;
+            text-decoration: none;
+            color: #FFF;
         }
 
-        .user-pill:hover {
-            background: #f8fafc;
-        }
-
-        .user-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #fce7f3;
-            color: #be185d;
-            font-size: 0.72rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .user-info {
-            line-height: 1.15;
-        }
-
-        .user-name {
-            font-size: 0.76rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .user-handle {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-        }
-
-        /* Category Filter Pills (Reference UI) */
-        .filter-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .heading-lg {
-            font-size: 1.45rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            color: var(--text-main);
-        }
-
-        .pill-tabs {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .pill-tab {
-            padding: 6px 14px;
-            border-radius: var(--radius-pill);
-            font-size: 0.78rem;
-            font-weight: 700;
-            border: 1px solid var(--border-subtle);
-            background: #ffffff;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .pill-tab:hover {
-            background: #f1f5f9;
-            color: var(--text-main);
-        }
-
-        .pill-tab.active {
-            background: #111827;
-            color: #ffffff;
-            border-color: #111827;
-        }
-
-        /* 3 Top Cards Grid */
-        .top-cards-grid {
+        .brand-dots {
+            width: 22px;
+            height: 22px;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
+            gap: 2.5px;
         }
 
-        .hero-card {
-            border-radius: var(--radius-card);
-            padding: 20px;
+        .brand-dots span {
+            width: 4.5px;
+            height: 4.5px;
+            border-radius: 50%;
+            background: #FFF;
+        }
+
+        .brand-dots span:nth-child(2),
+        .brand-dots span:nth-child(8) { background: #FB923C; }
+        .brand-dots span:nth-child(5) { background: var(--crimson); }
+
+        .brand-name {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .top-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .gmail-select-wrap {
             position: relative;
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 195px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 2px solid transparent;
-        }
-
-        .hero-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .card-yellow {
-            background: var(--card-yellow);
-            border-color: var(--card-yellow-border);
-        }
-
-        .card-purple {
-            background: var(--card-purple);
-            border-color: var(--card-purple-border);
-        }
-
-        .card-blue {
-            background: var(--card-blue);
-            border-color: var(--card-blue-border);
-        }
-
-        .card-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .tag-dark {
-            background: #111827;
-            color: #ffffff;
-            font-size: 0.68rem;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: var(--radius-pill);
-            letter-spacing: 0.02em;
-        }
-
-        .tag-outline {
-            background: rgba(255, 255, 255, 0.65);
-            color: #111827;
-            border: 1px solid rgba(0, 0, 0, 0.15);
-            font-size: 0.68rem;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: var(--radius-pill);
-        }
-
-        .card-bookmark {
-            color: #111827;
-            opacity: 0.75;
-            cursor: pointer;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-            line-height: 1.25;
-            letter-spacing: -0.02em;
-            color: #111827;
-            margin-bottom: 12px;
-        }
-
-        .card-subtext {
-            font-size: 0.76rem;
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 8px;
-        }
-
-        /* Progress bar on cards */
-        .progress-wrap {
-            margin-top: auto;
-            margin-bottom: 14px;
-        }
-
-        .progress-meta {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #334155;
-            margin-bottom: 4px;
-        }
-
-        .progress-bar-bg {
-            width: 100%;
-            height: 6px;
-            background: rgba(0, 0, 0, 0.08);
-            border-radius: 9999px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            border-radius: 9999px;
-            background: #111827;
-            transition: width 0.3s ease;
-        }
-
-        /* Card bottom row */
-        .card-foot {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .card-avatar-group {
-            display: flex;
             align-items: center;
         }
 
-        .card-avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 2px solid #fff;
-            margin-left: -6px;
-            background: #cbd5e1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.6rem;
-            font-weight: 800;
-            color: #1e293b;
-        }
-
-        .card-avatar:first-child {
-            margin-left: 0;
-        }
-
-        .avatar-count {
-            background: #111827;
-            color: #fff;
-            font-size: 0.58rem;
-        }
-
-        .btn-coral {
-            background: var(--accent-coral);
-            color: #ffffff;
-            font-family: inherit;
-            font-weight: 800;
+        .gmail-select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: rgba(15, 16, 22, 0.72);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            color: #FFF;
+            font-family: var(--font-sans);
             font-size: 0.78rem;
-            border: none;
-            border-radius: var(--radius-pill);
-            padding: 7px 16px;
+            font-weight: 600;
+            padding: 8px 28px 8px 12px;
+            border-radius: 999px;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.15s ease;
-            box-shadow: 0 4px 10px rgba(255, 92, 56, 0.3);
-            white-space: nowrap;
+            max-width: 210px;
+            text-overflow: ellipsis;
         }
 
-        .btn-coral:hover {
-            background: var(--accent-coral-hover);
-            transform: translateY(-1px);
-        }
-
-        .btn-coral:active {
-            transform: translateY(1px);
-        }
-
-        .btn-coral:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* Select Dropdown in Card 1 */
-        .gmail-select-box {
-            width: 100%;
-            padding: 7px 10px;
-            border-radius: 10px;
-            border: 1.5px solid rgba(0, 0, 0, 0.15);
-            background: rgba(255, 255, 255, 0.85);
-            font-family: inherit;
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #111827;
+        .gmail-select:focus {
             outline: none;
-            cursor: pointer;
-            margin-bottom: 8px;
+            border-color: var(--crimson);
         }
 
-        /* eSIM Target Selection Pills in Card 2 */
-        .esim-target-group {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 6px;
-            margin-bottom: 10px;
+        .gmail-select option {
+            background: #121216;
+            color: #FFF;
         }
 
-        .target-pill {
-            background: rgba(255, 255, 255, 0.7);
-            border: 1.5px solid rgba(0, 0, 0, 0.12);
-            border-radius: 10px;
-            padding: 5px 8px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #1e293b;
-            cursor: pointer;
+        .gmail-caret {
+            position: absolute;
+            right: 10px;
+            pointer-events: none;
+            color: var(--text-secondary);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            transition: all 0.15s;
         }
 
-        .target-pill:hover {
-            background: rgba(255, 255, 255, 0.95);
-        }
-
-        .target-pill.active {
-            background: #111827;
-            color: #ffffff;
-            border-color: #111827;
-        }
-
-        /* Bottom Split Section (Left Stream, Right Inspector) */
-        .bottom-grid {
-            display: grid;
-            grid-template-columns: 1.7fr 1.1fr;
-            gap: 16px;
-            align-items: stretch;
-        }
-
-        /* Left Card: White Inbox Stream */
-        .stream-card {
-            background: var(--card-white);
-            border-radius: var(--radius-card);
-            border: 1.5px solid var(--border-subtle);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .stream-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .stream-title-wrap {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .pulse-dot {
-            width: 9px;
-            height: 9px;
+        .btn-icon-glass {
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
-            background: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
-            }
-
-            70% {
-                transform: scale(1);
-                box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
-            }
-
-            100% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-            }
-        }
-
-        .stream-title {
-            font-size: 1.15rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            color: var(--text-main);
-        }
-
-        .stream-sub {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .stream-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-text-sm {
-            background: transparent;
-            border: none;
-            font-family: inherit;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--accent-coral);
-            cursor: pointer;
-        }
-
-        .btn-text-sm:hover {
-            text-decoration: underline;
-        }
-
-        /* Email Items List */
-        .email-stream-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 480px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-
-        .email-item-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            background: #f8fafc;
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-inner);
-            cursor: pointer;
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .email-item-row:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-            transform: translateX(2px);
-        }
-
-        .email-item-row.unread {
-            background: #ffffff;
-            border-color: #cbd5e1;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-        }
-
-        .email-item-row.unread .sender-nomad {
-            font-weight: 800;
-            color: #0f172a;
-        }
-
-        .nomad-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 12px;
-            background: #ffede8;
-            color: var(--accent-coral);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            color: #FFF;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
             flex-shrink: 0;
         }
 
-        .email-meta-col {
+        .btn-icon-glass:hover {
+            background: var(--crimson);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           2. CONTROL DECK (ALIAS GENERATOR + CODE BOX + TARGETS)
+        ═══════════════════════════════════════════════════════════════════ */
+        .control-deck {
+            display: grid;
+            grid-template-columns: 1.25fr 0.95fr;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        /* Left Card: Active Email Alias & Generate Button */
+        .glass-card-main {
+            border-radius: 22px;
+            padding: 14px 16px;
+            background:
+                radial-gradient(circle at 90% 10%, rgba(225, 29, 72, 0.25) 0%, transparent 55%),
+                rgba(18, 18, 24, 0.72);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-glass);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .card-row-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .card-label {
+            font-family: var(--font-display);
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .quota-badges {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .pill-stat {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 2px 8px;
+            border-radius: 999px;
+            color: var(--text-secondary);
+        }
+
+        /* Active Email Display + Copy */
+        .alias-bar {
+            background: rgba(5, 5, 8, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 14px;
+            padding: 9px 10px 9px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .alias-text {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #FFF;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            user-select: all;
+        }
+
+        .btn-copy-small {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #FFF;
+            padding: 6px 12px;
+            border-radius: 9px;
+            font-family: var(--font-display);
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+
+        .btn-copy-small:hover {
+            background: #FFF;
+            color: #000;
+        }
+
+        /* Paceform Crimson Pill Button with Arrow Circle */
+        .btn-generate-pace {
+            width: 100%;
+            background: linear-gradient(135deg, #E11D48 0%, #9F1239 100%);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 999px;
+            padding: 6px 6px 6px 18px;
+            color: #FFF;
+            font-family: var(--font-display);
+            font-size: 0.86rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 8px 24px rgba(225, 29, 72, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            transition: all 0.2s;
+        }
+
+        .btn-generate-pace:hover:not(:disabled) {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+        }
+
+        .btn-generate-pace:disabled {
+            background: rgba(32, 32, 40, 0.8);
+            border-color: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.38);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .btn-arrow-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFF;
+        }
+
+        /* Right Card: Paceform Warm Amber Squircle (Latest Code + Auto-Copy Mode) */
+        .squircle-code-card {
+            border-radius: 22px;
+            padding: 14px 16px;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(251, 146, 60, 0.38) 0%, transparent 58%),
+                radial-gradient(circle at 85% 85%, rgba(225, 29, 72, 0.32) 0%, transparent 60%),
+                rgba(38, 18, 14, 0.72);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        /* Latest Code Display Box */
+        .live-code-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 8px 12px;
+            min-height: 54px;
+        }
+
+        .code-matrix-val {
+            font-family: var(--font-matrix);
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #FFF;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 18px rgba(251, 146, 60, 0.65);
+        }
+
+        .btn-white-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #FFF;
+            color: #050506;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+        }
+
+        .btn-white-circle:hover {
+            transform: scale(1.06);
+        }
+
+        /* Compact 4-Button Auto-Copy Mode Selector */
+        .target-bar-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .target-mode-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+
+        .target-pill {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-secondary);
+            padding: 7px 4px;
+            border-radius: 10px;
+            font-family: var(--font-display);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .target-pill:hover {
+            color: #FFF;
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Euphoria Emerald Active State from Reference */
+        .target-pill.active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.38) 0%, rgba(6, 78, 59, 0.75) 100%);
+            border-color: #34D399;
+            color: #FFF;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           3. INBOX LIST SECTION (FILLS REMAINING SCREEN SPACE)
+        ═══════════════════════════════════════════════════════════════════ */
+        .inbox-panel {
+            flex: 1;
+            min-height: 0;
+            background: rgba(12, 12, 16, 0.78);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-glass);
+            border-radius: 22px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .inbox-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 9px;
+        }
+
+        .filter-tabs-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .filter-tabs-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-pill-tab {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-family: var(--font-display);
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+        }
+
+        .filter-pill-tab.active {
+            background: linear-gradient(135deg, #E11D48 0%, #9F1239 100%);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #FFF;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-mini-tool {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-family: var(--font-display);
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-mini-tool:hover {
+            color: #FFF;
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        /* Internal Scrollable Email List */
+        .email-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 2px;
+        }
+
+        .email-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .email-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+        }
+
+        .email-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 11px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .email-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(225, 29, 72, 0.45);
+        }
+
+        .email-icon-box {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(225, 29, 72, 0.25), rgba(234, 88, 12, 0.25));
+            border: 1px solid rgba(225, 29, 72, 0.4);
+            color: #FB923C;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .email-body-col {
             flex: 1;
             min-width: 0;
         }
 
-        .email-top-line {
+        .email-meta-line {
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: space-between;
+            gap: 8px;
             margin-bottom: 2px;
         }
 
-        .sender-nomad {
-            font-size: 0.8rem;
+        .email-sender-title {
+            font-family: var(--font-display);
             font-weight: 700;
-            color: var(--text-main);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 0.84rem;
+            color: #FFF;
         }
 
-        .badge-verified {
-            background: #ecfdf5;
-            color: #059669;
-            font-size: 0.6rem;
-            font-weight: 800;
-            padding: 1px 6px;
-            border-radius: 4px;
-            letter-spacing: 0.04em;
+        .email-timestamp {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
         }
 
-        .email-subject-line {
+        .email-subject-text {
             font-size: 0.78rem;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-bottom: 4px;
-        }
-
-        .email-time-tag {
-            font-size: 0.68rem;
-            font-weight: 600;
-            color: var(--text-dim);
-            white-space: nowrap;
-            margin-left: auto;
-        }
-
-        /* Highlighted chips in email row */
-        .chips-line {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .code-badge-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: #111827;
-            color: #fde047;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.74rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 6px;
-            letter-spacing: 0.05em;
-        }
-
-        .esim-badge-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: #e0f2fe;
-            color: #0369a1;
-            font-size: 0.68rem;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 6px;
-        }
-
-        .auto-copied-badge {
-            font-size: 0.62rem;
-            font-weight: 800;
-            color: var(--accent-coral);
-            background: #fff1ee;
-            padding: 2px 6px;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        /* Empty state */
-        .empty-stream-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 48px 20px;
-            text-align: center;
-            color: var(--text-muted);
-        }
-
-        .empty-stream-icon {
-            width: 54px;
-            height: 54px;
-            border-radius: 18px;
-            background: #f1f5f9;
-            color: #94a3b8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 12px;
-        }
-
-        /* Right Column: Dark Charcoal eSIM Inspector (Reference UI Dark Card) */
-        .dark-inspector-card {
-            background: var(--card-dark);
-            border-radius: var(--radius-card);
-            padding: 24px;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        }
-
-        .inspector-head {
-            margin-bottom: 16px;
-        }
-
-        .inspector-top-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #fde047;
-            color: #111827;
-            font-size: 0.68rem;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: var(--radius-pill);
-            margin-bottom: 10px;
-            letter-spacing: 0.02em;
-        }
-
-        .inspector-headline {
-            font-size: 1.25rem;
-            font-weight: 800;
-            line-height: 1.2;
-            letter-spacing: -0.02em;
-            color: #ffffff;
             margin-bottom: 6px;
         }
 
-        .inspector-sub {
+        .email-tags-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .tag-otp {
+            background: rgba(225, 29, 72, 0.18);
+            border: 1px solid rgba(225, 29, 72, 0.45);
+            color: #FDA4AF;
+            padding: 3px 9px;
+            border-radius: 7px;
+            font-family: var(--font-matrix);
             font-size: 0.76rem;
-            color: #94a3b8;
-            line-height: 1.45;
-        }
-
-        /* eSIM Details Display Area inside Dark Card */
-        .esim-body-panel {
-            background: #111317;
-            border: 1px solid var(--border-dark);
-            border-radius: var(--radius-inner);
-            padding: 16px;
-            margin: 12px 0 18px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .qr-container {
-            display: flex;
-            flex-direction: column;
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 12px;
-            color: #0f172a;
+            gap: 7px;
         }
 
-        .qr-img {
-            width: 150px;
-            height: 150px;
-            object-fit: contain;
-            border-radius: 6px;
-        }
-
-        .qr-label {
-            font-size: 0.68rem;
-            font-weight: 700;
-            color: #334155;
-        }
-
-        .code-row {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .code-label {
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #94a3b8;
-        }
-
-        .code-box {
-            background: #1a1c22;
-            border: 1px solid #2d3139;
-            border-radius: 8px;
-            padding: 8px 10px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: #38bdf8;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            word-break: break-all;
-        }
-
-        .copy-mini-btn {
-            background: rgba(255, 255, 255, 0.1);
+        .tag-btn-copy {
+            background: #FFF;
+            color: #050506;
             border: none;
-            border-radius: 6px;
-            color: #fff;
-            padding: 3px 7px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            cursor: pointer;
-            flex-shrink: 0;
-            margin-left: 6px;
-            transition: all 0.15s;
-        }
-
-        .copy-mini-btn:hover {
-            background: var(--accent-coral);
-        }
-
-        .btn-inspector-action {
-            width: 100%;
-            background: var(--accent-coral);
-            color: #ffffff;
-            border: none;
-            border-radius: var(--radius-pill);
-            padding: 12px 18px;
-            font-family: inherit;
-            font-size: 0.88rem;
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-family: var(--font-display);
+            font-size: 0.66rem;
             font-weight: 800;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.15s;
-            box-shadow: 0 6px 20px rgba(255, 92, 56, 0.4);
         }
 
-        .btn-inspector-action:hover {
-            background: var(--accent-coral-hover);
-            transform: translateY(-1px);
-        }
-
-        /* Notification Banner (Auto-Copied toast) */
-        .toast-banner {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #111827;
-            color: #ffffff;
-            padding: 12px 22px;
-            border-radius: var(--radius-pill);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.84rem;
+        .tag-esim-badge {
+            background: rgba(16, 185, 129, 0.16);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #6EE7B7;
+            padding: 3px 9px;
+            border-radius: 7px;
+            font-size: 0.72rem;
             font-weight: 700;
-            z-index: 9999;
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            pointer-events: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .toast-banner.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-            pointer-events: auto;
+        .tag-auto-note {
+            font-size: 0.68rem;
+            color: var(--text-muted);
         }
 
-        .toast-icon {
-            color: var(--accent-coral);
-            flex-shrink: 0;
+        .stream-empty {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-muted);
+            gap: 8px;
+            padding: 20px;
+            font-size: 0.8rem;
         }
 
-        /* Modal Styling */
-        .modal-overlay {
+        /* ═══════════════════════════════════════════════════════════════════
+           MODALS (ADMIN, QR, EMAIL VIEW)
+        ═══════════════════════════════════════════════════════════════════ */
+        .modal-backdrop {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(6px);
+            inset: 0;
+            background: rgba(3, 3, 5, 0.84);
+            backdrop-filter: blur(16px);
+            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
+            padding: 14px;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s ease;
-            padding: 16px;
+            transition: opacity 0.2s;
         }
 
-        .modal-overlay.open {
+        .modal-backdrop.open {
             opacity: 1;
             pointer-events: auto;
         }
 
-        .modal-card {
-            background: #ffffff;
-            border-radius: 24px;
+        .modal-box {
+            background: #101015;
+            border: 1px solid var(--border-highlight);
+            border-radius: 22px;
             width: 100%;
-            max-width: 580px;
-            padding: 24px;
-            box-shadow: var(--shadow-tablet);
-            position: relative;
-            max-height: 85vh;
-            overflow-y: auto;
+            max-width: 560px;
+            max-height: 90dvh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85);
+            overflow: hidden;
         }
 
-        .modal-head {
+        .modal-header-row {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #e2e8f0;
         }
 
-        .modal-close-btn {
-            background: #f1f5f9;
+        .modal-header-row h2 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.08);
             border: none;
+            color: #FFF;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             cursor: pointer;
-            color: #64748b;
-            transition: all 0.15s;
         }
 
-        .modal-close-btn:hover {
-            background: #e2e8f0;
-            color: #0f172a;
+        .modal-inner {
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
         }
 
-        /* Admin Table Styling */
-        .adm-table {
+        .adm-tab-row {
+            display: flex;
+            gap: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .adm-tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.78rem;
+            padding: 6px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+
+        .adm-tab-btn.active {
+            background: rgba(225, 29, 72, 0.2);
+            border-color: rgba(225, 29, 72, 0.5);
+            color: #FDA4AF;
+        }
+
+        .adm-table-wrap {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.78rem;
-            margin-top: 12px;
         }
 
-        .adm-table th {
+        .adm-table-wrap th {
             text-align: left;
-            padding: 8px 10px;
-            background: #f8fafc;
-            color: #475569;
-            font-weight: 700;
-            border-bottom: 1.5px solid #e2e8f0;
+            padding: 8px;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .adm-table td {
-            padding: 10px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #1e293b;
+        .adm-table-wrap td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .adm-input {
+        .adm-text-input {
             width: 100%;
-            padding: 9px 12px;
-            border-radius: 10px;
-            border: 1.5px solid var(--border-subtle);
-            font-family: inherit;
-            font-size: 0.82rem;
-            margin-bottom: 10px;
+            background: #060608;
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            color: #FFF;
+            padding: 11px 14px;
+            font-size: 0.85rem;
             outline: none;
         }
 
-        .adm-input:focus {
-            border-color: var(--accent-coral);
+        .btn-crimson-pill {
+            background: linear-gradient(135deg, #E11D48 0%, #9F1239 100%);
+            color: #FFF;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 10px 18px;
+            border-radius: 999px;
+            font-family: var(--font-display);
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
         }
 
-        /* Responsive */
-        @media (max-width: 980px) {
-            .tablet-frame {
-                flex-direction: column;
-                border-radius: 24px;
-                padding: 8px;
+        /* TOAST NOTIFICATION */
+        .toast-pill {
+            position: fixed;
+            bottom: 18px;
+            right: 18px;
+            background: rgba(16, 16, 22, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--crimson);
+            color: #FFF;
+            padding: 10px 18px;
+            border-radius: 999px;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 700;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 9999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+
+        .toast-pill.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           MOBILE ZERO-SCROLL COMPACT OPTIMIZATION
+        ═══════════════════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .app-shell {
+                padding: 8px 10px;
+                gap: 8px;
             }
 
-            .tablet-sidebar {
-                width: 100%;
-                height: auto;
-                flex-direction: row;
-                border-radius: 18px 18px 0 0;
-                padding: 10px 16px;
-                justify-content: space-around;
-            }
-
-            .sb-spacer {
-                display: none;
-            }
-
-            .top-cards-grid {
+            .control-deck {
                 grid-template-columns: 1fr;
+                gap: 8px;
             }
 
-            .bottom-grid {
-                grid-template-columns: 1fr;
+            .glass-card-main,
+            .squircle-code-card {
+                padding: 10px 12px;
+                border-radius: 16px;
+                gap: 7px;
             }
 
-            .tablet-canvas {
-                padding: 16px;
-                max-height: none;
+            .alias-bar {
+                padding: 7px 8px 7px 11px;
+            }
+
+            .alias-text {
+                font-size: 0.82rem;
+            }
+
+            .btn-generate-pace {
+                padding: 5px 5px 5px 14px;
+                font-size: 0.8rem;
+            }
+
+            .btn-arrow-circle {
+                width: 26px;
+                height: 26px;
+            }
+
+            .live-code-box {
+                min-height: 44px;
+                padding: 6px 10px;
+            }
+
+            .code-matrix-val {
+                font-size: 1.2rem;
+            }
+
+            .target-pill {
+                padding: 6px 2px;
+                font-size: 0.68rem;
+            }
+
+            .inbox-panel {
+                padding: 9px 10px;
+                border-radius: 16px;
+                gap: 7px;
+            }
+
+            .gmail-select {
+                max-width: 165px;
+                font-size: 0.74rem;
+                padding: 6px 24px 6px 10px;
             }
         }
     </style>
@@ -1168,483 +951,284 @@
 
 <body>
 
-    <!-- Tablet Bezel Container -->
-    <div class="tablet-frame">
+    <!-- TOP OTP BAR (Shows when code arrives) -->
+    <div class="otp-alert-bar" id="otpAlertBar" onclick="autoCopyActiveOtp()">
+        <span>Verification Code:</span>
+        <span class="otp-alert-code" id="otpAlertCode">------</span>
+        <span style="font-size:0.7rem;opacity:0.85;text-decoration:underline;">Tap to Copy</span>
+    </div>
 
-        <!-- Left Dark Sidebar (Reference UI) -->
-        <aside class="tablet-sidebar">
-            <button class="sb-btn active" title="eSIM Dashboard" onclick="switchNavTab('dashboard')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                    <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                    <rect x="14" y="14" width="7" height="7" rx="1.5" />
-                    <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                </svg>
-            </button>
+    <!-- MAIN SINGLE-SCREEN APP -->
+    <main class="app-shell">
 
-            <button class="sb-btn" title="Nomad Stream" onclick="switchNavTab('stream')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                    <polyline points="22,6 12,13 2,6" />
-                </svg>
-            </button>
+        <!-- 1. COMPACT HEADER -->
+        <header class="top-bar">
+            <a href="#" class="brand">
+                <div class="brand-dots">
+                    <span></span><span></span><span></span>
+                    <span></span><span></span><span></span>
+                    <span></span><span></span><span></span>
+                </div>
+                <span class="brand-name">Nomad Mailshot</span>
+            </a>
 
-            <button class="sb-btn" title="QR Code Inspector" onclick="openQrModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <rect x="3" y="3" width="7" height="7" />
-                    <rect x="14" y="3" width="7" height="7" />
-                    <rect x="3" y="14" width="7" height="7" />
-                    <path d="M14 14h2v2h-2z" />
-                    <path d="M18 14h3v3h-3z" />
-                    <path d="M14 18h3v3h-3z" />
-                    <path d="M18 18h3v3h-3z" />
-                </svg>
-            </button>
-
-            <div class="sb-spacer"></div>
-
-            <button class="sb-btn" title="Admin Settings" onclick="openAdminModal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="3" />
-                    <path
-                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                </svg>
-            </button>
-
-            <button class="sb-btn" title="Reset Session" onclick="clearCurrentSession()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-            </button>
-        </aside>
-
-        <!-- Main Tablet Canvas -->
-        <main class="tablet-canvas">
-
-            <!-- Top Header Bar -->
-            <div class="top-bar">
-                <h1 class="brand-title">
-                    Welcome to <span class="accent">Nomad Mailshot</span>
-                </h1>
-
-                <div class="top-actions">
-                    <div class="search-pill">
-                        <input type="text" id="filterKeywordInput" placeholder="Search eSIM or verification..."
-                            oninput="filterEmails()" />
-                        <button class="search-btn" title="Search">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <button class="action-icon-btn" title="Live Stream Notifications"
-                        onclick="showToast('Nomad listener connected')">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            <div class="top-controls">
+                <div class="gmail-select-wrap">
+                    <select id="baseGmailSelect" class="gmail-select" onchange="onSelectBaseGmail()">
+                        <option value="">Loading accounts...</option>
+                    </select>
+                    <div class="gmail-caret">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="6 9 12 15 18 9"/>
                         </svg>
-                        <span class="unread-dot" id="headerPingDot"></span>
-                    </button>
-
-                    <div class="user-pill" onclick="openAdminModal()">
-                        <div class="user-avatar">NM</div>
-                        <div class="user-info">
-                            <div class="user-name">Nomad Agent</div>
-                            <div class="user-handle">@esim_auto</div>
-                        </div>
                     </div>
                 </div>
+
+                <button class="btn-icon-glass" onclick="openQrModal()" title="Show eSIM QR">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                </button>
+
+                <button class="btn-icon-glass" onclick="openAdminModal()" title="Admin Settings">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </button>
             </div>
+        </header>
 
-            <!-- Categories / Filter Row -->
-            <div class="filter-row">
-                <div class="heading-lg">eSIM Active Center</div>
-                <div class="pill-tabs">
-                    <button class="pill-tab active" data-filter="all" onclick="selectStreamFilter('all')">All
-                        Nomad</button>
-                    <button class="pill-tab" data-filter="verification"
-                        onclick="selectStreamFilter('verification')">Verification Codes</button>
-                    <button class="pill-tab" data-filter="esim" onclick="selectStreamFilter('esim')">eSIM
-                        Delivery</button>
-                    <button class="pill-tab" data-filter="everything" onclick="selectStreamFilter('everything')">Raw
-                        Inboxes</button>
-                </div>
-            </div>
+        <!-- 2. COMPACT CONTROL DECK (ALIAS GENERATOR + CODE/TARGET) -->
+        <section class="control-deck">
 
-            <!-- 3 Top Cards Grid (Learnify Theme) -->
-            <section class="top-cards-grid">
-
-                <!-- CARD 1: Warm Yellow (Active Alias & Gmail Selector) -->
-                <div class="hero-card card-yellow">
-                    <div>
-                        <div class="card-head">
-                            <span class="tag-dark">GMAIL SELECTOR</span>
-                            <svg class="card-bookmark" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                            </svg>
-                        </div>
-                        <div class="card-title" id="activeAliasHeadline">No Alias Active</div>
-                        <select class="gmail-select-box" id="baseGmailSelect" onchange="onSelectBaseGmail()">
-                            <option value="">Loading connected Gmails…</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <div class="progress-wrap">
-                            <div class="progress-meta">
-                                <span>Daily Limit: 1 per day</span>
-                                <span id="dailyLimitStatusLabel">Ready</span>
-                            </div>
-                            <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" id="dailyLimitBar" style="width: 0%;"></div>
-                            </div>
-                        </div>
-
-                        <div class="card-foot">
-                            <div class="card-avatar-group">
-                                <div class="card-avatar" style="background:#fbcfe8;">1</div>
-                                <div class="card-avatar" style="background:#fed7aa;">2</div>
-                                <div class="card-avatar avatar-count" id="aliasCountPill">0/1</div>
-                            </div>
-                            <button class="btn-coral" id="btnGenAlias" onclick="handleGenerateAlias()">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5">
-                                    <path d="M12 5v14M5 12h14" />
-                                </svg>
-                                <span id="btnGenLabel">Generate Alias</span>
-                            </button>
-                        </div>
+            <!-- Card A: Email Alias Generator -->
+            <div class="glass-card-main">
+                <div class="card-row-top">
+                    <span class="card-label">Current Email Alias</span>
+                    <div class="quota-badges">
+                        <span id="dailyLimitStatusLabel" style="color:#6EE7B7;">1 Available Today</span>
+                        <span class="pill-stat" id="dotVariantsStat">-- / --</span>
+                        <span style="display:none;" id="aliasCountPill"></span>
                     </div>
                 </div>
 
-                <!-- CARD 2: Soft Lilac (Nomad eSIM Auto-Copy Target) -->
-                <div class="hero-card card-purple">
-                    <div>
-                        <div class="card-head">
-                            <span class="tag-dark">AUTO-COPY TARGET</span>
-                            <svg class="card-bookmark" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                            </svg>
-                        </div>
-                        <div class="card-title">Instant Auto-Extraction</div>
-                        <p class="card-subtext">Choose what to auto-copy when eSIM arrives:</p>
-                        <div class="esim-target-group">
-                            <div class="target-pill active" id="pillTargetAndroid" onclick="setEsimTarget('android')">
-                                <span>🤖 Android (LPA)</span>
-                            </div>
-                            <div class="target-pill" id="pillTargetIos" onclick="setEsimTarget('ios')">
-                                <span>🍏 iOS (Code)</span>
-                            </div>
-                            <div class="target-pill" id="pillTargetWindows" onclick="setEsimTarget('windows')">
-                                <span>💻 Windows (LPA)</span>
-                            </div>
-                            <div class="target-pill" id="pillTargetQr" onclick="setEsimTarget('qr')">
-                                <span>📱 Auto QR Screen</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-foot">
-                        <span class="tag-outline" id="autoCopyTargetLabel">Target: Android</span>
-                        <button class="btn-coral" onclick="showToast('Auto-copy is armed and ready!')">
-                            <span>Auto-Copy Active</span>
-                        </button>
-                    </div>
+                <div class="alias-bar">
+                    <span class="alias-text" id="activeAliasHeadline">No Alias Active</span>
+                    <button class="btn-copy-small" onclick="copyCurrentAlias()">Copy</button>
                 </div>
 
-                <!-- CARD 3: Soft Blue (Dot Rule Guard: Max 2 Dots) -->
-                <div class="hero-card card-blue">
-                    <div>
-                        <div class="card-head">
-                            <span class="tag-dark">DOT GUARD</span>
-                            <svg class="card-bookmark" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                            </svg>
-                        </div>
-                        <div class="card-title">Max 2 Dots Policy</div>
-                        <p class="card-subtext" id="dotGuardDesc">Aliases strictly generated with ≤ 2 dots. Exhausted
-                            accounts auto-lock.</p>
-                    </div>
-
-                    <div>
-                        <div class="progress-wrap">
-                            <div class="progress-meta">
-                                <span>Dot Variants Pool</span>
-                                <span id="dotVariantsStat">-- / --</span>
-                            </div>
-                            <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" id="dotVariantsBar" style="width: 100%;"></div>
-                            </div>
-                        </div>
-
-                        <div class="card-foot">
-                            <span class="tag-outline" id="accountExhaustedBadge">Status: Normal</span>
-                            <button class="btn-coral" onclick="copyCurrentAlias()">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2.5">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" />
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                                </svg>
-                                <span>Copy Address</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-            </section>
-
-            <!-- Bottom Split Section (Nomad Stream on Left, Dark Inspector on Right) -->
-            <section class="bottom-grid">
-
-                <!-- Left Card: Nomad Inbox Stream -->
-                <div class="stream-card">
-                    <div class="stream-head">
-                        <div>
-                            <div class="stream-title-wrap">
-                                <div class="pulse-dot"></div>
-                                <h2 class="stream-title">Nomad Inbox &amp; eSIM Stream</h2>
-                            </div>
-                            <p class="stream-sub">Direct delivery from <strong>no-reply@getnomad.app</strong> · Zero
-                                manual copying needed</p>
-                        </div>
-                        <div class="stream-actions">
-                            <button class="btn-text-sm" onclick="manualRefreshEmails()">Sync Now</button>
-                            <button class="btn-text-sm" onclick="clearStreamView()">Clear View</button>
-                        </div>
-                    </div>
-
-                    <!-- Email Items List -->
-                    <div class="email-stream-list" id="emailStreamList">
-                        <!-- Populated via JS -->
-                    </div>
-                </div>
-
-                <!-- Right Card: Dark Slate eSIM Inspector (Reference UI Dark Card) -->
-                <div class="dark-inspector-card">
-                    <div>
-                        <div class="inspector-head">
-                            <span class="inspector-top-tag">NOMAD READY TO INSTALL</span>
-                            <h3 class="inspector-headline" id="inspectorHeadline">Latest eSIM Captured</h3>
-                            <p class="inspector-sub">Scans incoming emails and renders one-touch installation
-                                credentials instantly.</p>
-                        </div>
-
-                        <div class="esim-body-panel" id="inspectorPanel">
-                            <div style="text-align: center; color: #94a3b8; font-size: 0.78rem; padding: 18px 0;">
-                                Waiting for Nomad eSIM or verification email…
-                            </div>
-                        </div>
-                    </div>
-
-                    <button class="btn-inspector-action" id="btnMainInspectorAction" onclick="handleInspectorAction()">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.5">
-                            <rect x="3" y="3" width="7" height="7" />
-                            <rect x="14" y="3" width="7" height="7" />
-                            <rect x="3" y="14" width="7" height="7" />
-                            <path d="M14 14h2v2h-2z" />
+                <button class="btn-generate-pace" id="btnGenAlias" onclick="onGenerateAliasClick()">
+                    <span id="btnGenLabel">Generate New Alias</span>
+                    <span class="btn-arrow-circle">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="7" y1="17" x2="17" y2="7"/>
+                            <polyline points="7 7 17 7 17 17"/>
                         </svg>
-                        <span id="inspectorBtnText">Enlarge QR Code</span>
+                    </span>
+                </button>
+            </div>
+
+            <!-- Card B: Latest Code & Auto-Copy Format -->
+            <div class="squircle-code-card">
+                <div class="card-row-top">
+                    <span class="card-label" id="inspectorHeadline">Latest Code / eSIM</span>
+                    <span style="font-size:0.7rem;color:rgba(255,255,255,0.65);" id="autoCopyTargetLabel">Auto-copy: Android</span>
+                </div>
+
+                <div class="live-code-box" id="inspectorPanel">
+                    <div>
+                        <div style="font-size:0.68rem;color:rgba(255,255,255,0.6);">Waiting for Nomad email...</div>
+                        <div class="code-matrix-val">------</div>
+                    </div>
+                    <button class="btn-white-circle" id="btnMainInspectorAction" onclick="handleInspectorAction()" title="Copy or Show QR">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                        </svg>
                     </button>
+                    <span id="inspectorBtnText" style="display:none;"></span>
                 </div>
 
-            </section>
-
-        </main>
-    </div>
-
-    <!-- Fullscreen QR Code Pop-up Modal -->
-    <div class="modal-overlay" id="qrModalOverlay" onclick="if(event.target===this)closeQrModal()">
-        <div class="modal-card" style="text-align: center; max-width: 440px;">
-            <div class="modal-head">
-                <h3 style="font-size: 1.15rem; font-weight: 800;">eSIM Installation QR Code</h3>
-                <button class="modal-close-btn" onclick="closeQrModal()">&times;</button>
-            </div>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">
-                Open your phone camera or <strong>Settings &gt; Cellular &gt; Add eSIM</strong> to scan:
-            </p>
-            <div
-                style="background: #ffffff; padding: 20px; border-radius: 16px; display: inline-block; box-shadow: 0 4px 16px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
-                <img id="modalQrImg" src="" alt="eSIM QR Code" style="width: 250px; height: 250px; display: block;" />
-            </div>
-            <div style="margin-top: 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #475569; word-break: break-all;"
-                id="modalLpaLabel">
-                LPA:1$rsp.esim.pub$...
-            </div>
-            <button class="btn-coral" style="margin-top: 16px; width: 100%; justify-content: center;"
-                onclick="copyActiveLpa()">
-                Copy LPA Code to Clipboard
-            </button>
-        </div>
-    </div>
-
-    <!-- Full Email HTML Viewer Modal -->
-    <div class="modal-overlay" id="emailModalOverlay" onclick="if(event.target===this)closeEmailModal()">
-        <div class="modal-card" style="max-width: 720px;">
-            <div class="modal-head">
-                <div>
-                    <h3 id="emailModalSubject" style="font-size: 1.1rem; font-weight: 800; margin-bottom: 4px;">Email
-                        Subject</h3>
-                    <p id="emailModalFrom" style="font-size: 0.75rem; color: var(--text-muted);">From:
-                        no-reply@getnomad.app</p>
-                </div>
-                <button class="modal-close-btn" onclick="closeEmailModal()">&times;</button>
-            </div>
-            <div id="emailModalOtpSection" style="margin-bottom: 12px; display: none;"></div>
-            <div id="emailModalIframeContainer"
-                style="border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; background: #fff; min-height: 380px;">
-                <iframe id="emailModalIframe" style="width: 100%; min-height: 420px; border: none; display: block;"
-                    sandbox="allow-same-origin allow-popups"></iframe>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin Panel Modal -->
-    <div class="modal-overlay" id="adminModalOverlay" onclick="if(event.target===this)closeAdminModal()">
-        <div class="modal-card" style="max-width: 640px;">
-            <div class="modal-head">
-                <h3 style="font-size: 1.2rem; font-weight: 800;">Admin Management Panel</h3>
-                <button class="modal-close-btn" onclick="closeAdminModal()">&times;</button>
-            </div>
-
-            <!-- Password Lock Screen -->
-            <div id="adminAuthLock">
-                <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">Enter authorized admin
-                    secret to manage connected Gmails:</p>
-                <input type="password" id="adminSecretInput" class="adm-input"
-                    placeholder="Enter admin password (e.g. SM-2026)"
-                    onkeydown="if(event.key==='Enter')authenticateAdmin()" />
-                <button class="btn-coral" style="width: 100%; justify-content: center;"
-                    onclick="authenticateAdmin()">Authenticate</button>
-            </div>
-
-            <!-- Authenticated Content -->
-            <div id="adminPanelContent" style="display: none;">
-                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                    <button class="pill-tab active" id="admTabAccounts" onclick="switchAdminTab('accounts')">Gmail
-                        Accounts</button>
-                    <button class="pill-tab" id="admTabAdd" onclick="switchAdminTab('add')">+ Add Gmail</button>
-                    <button class="pill-tab" id="admTabConfig" onclick="switchAdminTab('config')">Backend URL</button>
-                </div>
-
-                <!-- Section: List Accounts -->
-                <div id="admSectionAccounts">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-size: 0.78rem; font-weight: 700; color: #475569;">Registered Accounts &amp;
-                            Dot Stats</span>
-                        <button class="btn-text-sm" onclick="loadAdminStats()">Refresh</button>
-                    </div>
-                    <div style="max-height: 260px; overflow-y: auto;">
-                        <table class="adm-table">
-                            <thead>
-                                <tr>
-                                    <th>Gmail Account</th>
-                                    <th>Status</th>
-                                    <th>Max 2-Dots</th>
-                                    <th>Today</th>
-                                    <th>Visible</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admAccountsTbody">
-                                <tr>
-                                    <td colspan="6" style="text-align:center;">Loading accounts...</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="target-bar-wrap">
+                    <div class="target-mode-grid">
+                        <button class="target-pill active" id="pillTargetAndroid" onclick="setEsimTarget('android')">Android</button>
+                        <button class="target-pill" id="pillTargetIos" onclick="setEsimTarget('ios')">iOS</button>
+                        <button class="target-pill" id="pillTargetWindows" onclick="setEsimTarget('windows')">Windows</button>
+                        <button class="target-pill" id="pillTargetQr" onclick="setEsimTarget('qr')">QR Code</button>
                     </div>
                 </div>
+            </div>
 
-                <!-- Section: Add Account -->
-                <div id="admSectionAdd" style="display: none;">
-                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
-                        Connect a Gmail account to generate 2-dot aliases and automatically receive Nomad eSIM verification codes. You will be redirected to Google to authorize access.
+        </section>
+
+        <!-- 3. INBOX LIST (SCROLLS INTERNALLY, FITS SCREEN) -->
+        <section class="inbox-panel">
+            <div class="inbox-toolbar">
+                <div class="filter-tabs-row">
+                    <button class="filter-pill-tab active" data-filter="all" onclick="selectStreamFilter('all')">All Nomad</button>
+                    <button class="filter-pill-tab" data-filter="verification" onclick="selectStreamFilter('verification')">Codes</button>
+                    <button class="filter-pill-tab" data-filter="esim" onclick="selectStreamFilter('esim')">eSIM</button>
+                    <button class="filter-pill-tab" data-filter="everything" onclick="selectStreamFilter('everything')">All Mail</button>
+                </div>
+
+                <div class="toolbar-actions">
+                    <button class="btn-mini-tool" onclick="manualRefreshEmails()">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        Refresh
+                    </button>
+                    <button class="btn-mini-tool" onclick="clearStreamView()">Clear</button>
+                </div>
+            </div>
+
+            <div class="email-list" id="emailStreamList">
+                <div class="stream-empty">
+                    <strong style="color:#FFF;">No emails yet</strong>
+                    <span>Generate an alias above and use it on Nomad. Codes and eSIMs appear here automatically.</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         ADMIN MODAL (Password: SM-2026)
+    ═══════════════════════════════════════════════════════════════════ -->
+    <div class="modal-backdrop" id="adminModalOverlay">
+        <div class="modal-box">
+            <div class="modal-header-row">
+                <h2>Admin Settings</h2>
+                <button class="modal-close" onclick="closeAdminModal()">✕</button>
+            </div>
+
+            <div class="modal-inner">
+                <div id="adminAuthLock">
+                    <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:10px;">
+                        Enter Admin Password:
                     </p>
-                    <input type="email" id="admNewGmailInput" class="adm-input"
-                        placeholder="e.g. mynomadbot@gmail.com (optional)" />
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                        <input type="checkbox" id="admNewGmailVisible" checked
-                            style="width: 16px; height: 16px; accent-color: var(--accent-coral);" />
-                        <label for="admNewGmailVisible" style="font-size: 0.78rem; font-weight: 600;">Make visible in
-                            user generator</label>
-                    </div>
-                    <button class="btn-coral" style="width: 100%; justify-content: center; gap: 8px;"
-                        onclick="admAddGmailAccount()">
-                        <svg width="18" height="18" viewBox="0 0 24 24">
-                            <path d="M21.35 11.1h-9.17v2.98h5.27c-.23 1.25-.94 2.31-1.99 3.01v2.5h3.22c1.88-1.73 2.97-4.28 2.97-7.29 0-.67-.06-1.31-.18-1.91z" fill="#4285F4"/>
-                            <path d="M12.18 21c2.7 0 4.96-.89 6.62-2.42l-3.22-2.5c-.9.6-2.04.96-3.4.96-2.61 0-4.82-1.76-5.61-4.12H3.24v2.58A9.99 9.99 0 0012.18 21z" fill="#34A853"/>
-                            <path d="M6.57 12.92c-.2-.6-.32-1.25-.32-1.92s.12-1.32.32-1.92V6.5H3.24A9.986 9.986 0 002 11c0 1.61.39 3.14 1.24 4.5l3.33-2.58z" fill="#FBBC05"/>
-                            <path d="M12.18 4.96c1.47 0 2.78.51 3.82 1.5l2.86-2.86C17.13 1.99 14.88 1 12.18 1 7.68 1 3.79 3.56 2.24 7.28l3.33 2.58c.79-2.36 3-4.12 5.61-4.12z" fill="#EA4335"/>
-                        </svg>
-                        Sign in with Google &amp; Link Account
-                    </button>
+                    <input type="password" id="adminSecretInput" class="adm-text-input" placeholder="Password (SM-2026)" onkeydown="if(event.key==='Enter') verifyAdminSecret()" />
+                    <button class="btn-crimson-pill" style="width:100%;margin-top:12px;" onclick="verifyAdminSecret()">Unlock</button>
                 </div>
 
-                <!-- Section: Backend URL Configuration (Render) -->
-                <div id="admSectionConfig" style="display: none;">
-                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Enter your Render.com
-                        Web Service URL:</p>
-                    <input type="url" id="admBackendUrlInput" class="adm-input"
-                        placeholder="https://mailshot-0y8g.onrender.com" />
-                    <button class="btn-coral" style="width: 100%; justify-content: center;"
-                        onclick="saveBackendUrl()">Save Backend URL</button>
+                <div id="adminPanelContent" style="display:none;">
+                    <div class="adm-tab-row">
+                        <button class="adm-tab-btn active" id="admTabAccounts" onclick="switchAdminTab('accounts')">Accounts</button>
+                        <button class="adm-tab-btn" id="admTabAdd" onclick="switchAdminTab('add')">+ Add Gmail</button>
+                        <button class="adm-tab-btn" id="admTabConfig" onclick="switchAdminTab('config')">Server URL</button>
+                    </div>
+
+                    <div id="admSectionAccounts">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <span style="font-size:0.76rem;color:var(--text-muted);font-weight:700;">Connected Gmail Accounts</span>
+                            <button class="btn-mini-tool" onclick="loadAdminStats()">Refresh</button>
+                        </div>
+                        <div style="max-height:240px;overflow-y:auto;">
+                            <table class="adm-table-wrap">
+                                <thead>
+                                    <tr>
+                                        <th>Gmail</th>
+                                        <th>Status</th>
+                                        <th>Used</th>
+                                        <th>Today</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admAccountsTbody">
+                                    <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="admSectionAdd" style="display:none;">
+                        <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:10px;">
+                            Connect a Gmail account to generate aliases and receive Nomad emails.
+                        </p>
+                        <input type="email" id="admNewGmailInput" class="adm-text-input" placeholder="example@gmail.com (optional)" style="margin-bottom:10px;" />
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+                            <input type="checkbox" id="admNewGmailVisible" checked style="width:15px;height:15px;accent-color:var(--crimson);" />
+                            <label for="admNewGmailVisible" style="font-size:0.8rem;color:var(--text-secondary);">Show in account dropdown</label>
+                        </div>
+                        <button class="btn-crimson-pill" style="width:100%;" onclick="admAddGmailAccount()">
+                            Sign in with Google
+                        </button>
+                    </div>
+
+                    <div id="admSectionConfig" style="display:none;">
+                        <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:8px;">
+                            Backend Server URL:
+                        </p>
+                        <input type="url" id="admBackendUrlInput" class="adm-text-input" placeholder="https://mailshot-0y8g.onrender.com" />
+                        <button class="btn-crimson-pill" style="width:100%;margin-top:12px;" onclick="saveBackendUrl()">Save URL</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification Banner -->
-    <div class="toast-banner" id="toastBanner">
-        <svg class="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2.5">
-            <polyline points="20 6 9 17 4 12" />
-        </svg>
-        <span id="toastMessage">Verification code copied!</span>
+    <!-- QR MODAL -->
+    <div class="modal-backdrop" id="qrModalOverlay">
+        <div class="modal-box" style="max-width:380px;text-align:center;">
+            <div class="modal-header-row">
+                <h2>eSIM QR Code</h2>
+                <button class="modal-close" onclick="closeQrModal()">✕</button>
+            </div>
+            <div class="modal-inner" style="align-items:center;">
+                <img id="modalQrImg" src="" alt="eSIM QR Code" style="width:230px;height:230px;border-radius:16px;background:white;padding:12px;" />
+                <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-secondary);word-break:break-all;" id="modalLpaLabel"></div>
+                <button class="btn-crimson-pill" style="width:100%;" onclick="copyActiveLpa()">Copy LPA Code</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Application Logic -->
+    <!-- EMAIL DETAIL MODAL -->
+    <div class="modal-backdrop" id="emailModalOverlay">
+        <div class="modal-box" style="max-width:640px;height:82dvh;">
+            <div class="modal-header-row">
+                <h2 id="emailModalSubject" style="font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Email</h2>
+                <button class="modal-close" onclick="closeEmailModal()">✕</button>
+            </div>
+            <div class="modal-inner" style="flex:1;overflow:hidden;display:flex;flex-direction:column;padding:14px;">
+                <div id="emailModalFrom" style="font-size:0.72rem;color:var(--text-muted);margin-bottom:8px;"></div>
+                <div id="emailModalOtpSection" style="margin-bottom:10px;display:none;"></div>
+                <div style="flex:1;border-radius:14px;overflow:hidden;background:white;">
+                    <iframe id="emailModalIframe" style="width:100%;height:100%;border:none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast-pill" id="toastBanner">
+        <span id="toastMessage">Copied!</span>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         JAVASCRIPT LOGIC (ALL BACKEND & SUPABASE FEATURES INTACT)
+    ═══════════════════════════════════════════════════════════════════ -->
     <script>
-        /* ═══════════════════════════════════════════════════════════════
-           CONFIG & ENDPOINTS
-        ═══════════════════════════════════════════════════════════════ */
+        let BACKEND_URL = localStorage.getItem('nomad_backend_url') || 'https://mailshot-0y8g.onrender.com';
         const SUPABASE_URL = 'https://tlaazrkfluhrnpywjujr.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsYWF6cmtmbHVocm5weXdqdWpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0MjgzMDMsImV4cCI6MjEwOTAwNDMwM30.sK1q21ZY98xTuFZn8Etuxa2TJsJcSoG1KCPL9ktEDMI';
-        // Backend server URL (Render / Custom)
-        let BACKEND_URL = localStorage.getItem('nomad_backend_url') || 'https://mailshot-0y8g.onrender.com';
 
-        // Supabase client instance
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-        // State Variables
         let currentAlias = localStorage.getItem('nomad_active_alias') || '';
         let currentBaseGmail = localStorage.getItem('nomad_base_gmail') || '';
-        let esimTargetMode = localStorage.getItem('nomad_esim_target') || 'android'; // 'android', 'ios', 'windows', 'qr'
+        let esimTargetMode = localStorage.getItem('nomad_esim_target') || 'android';
         let adminSecret = localStorage.getItem('nomad_admin_secret') || 'SM-2026';
         let isAdminAuth = false;
 
         let emails = [];
-        let activeFilter = 'all'; // 'all', 'verification', 'esim', 'everything'
+        let activeFilter = 'all';
         let realtimeChan = null;
         let lastCopiedToken = '';
         let latestEsimData = null;
+        let currentActiveOtp = '';
 
-        /* ═══════════════════════════════════════════════════════════════
-           INITIALIZATION
-        ═══════════════════════════════════════════════════════════════ */
         window.addEventListener('DOMContentLoaded', async () => {
-            // Set saved target mode pill
             setEsimTarget(esimTargetMode, false);
-
-            // Load available Gmail accounts
             await loadAvailableGmails();
 
-            // Restore active alias session if present
             if (currentAlias) {
                 updateActiveAliasUI(currentAlias);
                 subscribeToAlias(currentAlias);
@@ -1653,16 +1237,12 @@
                 renderEmptyStream();
             }
 
-            // Check daily status for currentBaseGmail
             updateDailyLimitUI();
         });
 
-        /* ═══════════════════════════════════════════════════════════════
-           GMAIL ACCOUNTS & GENERATION (MAX 2 DOTS & 1 PER DAY)
-        ═══════════════════════════════════════════════════════════════ */
         async function loadAvailableGmails() {
             const select = document.getElementById('baseGmailSelect');
-            select.innerHTML = '<option value="">Loading accounts…</option>';
+            select.innerHTML = '<option value="">Loading...</option>';
 
             try {
                 const r = await fetch(BACKEND_URL + '/api/public/gmail-accounts');
@@ -1670,26 +1250,28 @@
                 const accounts = (data.ok && data.accounts) ? data.accounts : [];
 
                 if (!accounts.length) {
-                    select.innerHTML = '<option value="">No Gmails connected</option>';
+                    select.innerHTML = '<option value="">No Gmails added</option>';
                     return;
                 }
 
                 const todayStr = new Date().toISOString().slice(0, 10);
                 const usageMap = getDailyUsageMap();
 
-                select.innerHTML = '<option value="">— Select a Gmail —</option>' + accounts.map(a => {
+                select.innerHTML = '<option value="">Select Gmail</option>' + accounts.map(a => {
                     const isUsedToday = usageMap[a.email] === todayStr;
-                    const label = a.email + (isUsedToday ? ' (Locked: 1/1 Used Today)' : '');
+                    const label = a.email + (isUsedToday ? ' (Used today)' : '');
                     const isSelected = a.email === currentBaseGmail ? 'selected' : '';
-                    return `<option value="${a.email}" ${isSelected} ${isUsedToday ? 'data-locked="true"' : ''}>${label}</option>`;
+                    return `<option value="${a.email}" ${isSelected}>${label}</option>`;
                 }).join('');
 
                 if (!currentBaseGmail && accounts.length > 0) {
                     select.value = accounts[0].email;
                     onSelectBaseGmail();
+                } else if (currentBaseGmail) {
+                    calculateDotStats(currentBaseGmail);
                 }
             } catch (e) {
-                select.innerHTML = '<option value="">Connection error loading Gmails</option>';
+                select.innerHTML = '<option value="">Connection error</option>';
             }
         }
 
@@ -1698,15 +1280,13 @@
             const chosen = select.value;
             if (!chosen) return;
 
-            // Rule: Once user switches email, old generated email is cleared and previous original email disabled for today
-            if (currentBaseGmail && currentBaseGmail !== chosen && currentAlias) {
-                // Record previous base email as used for today
-                markGmailUsedToday(currentBaseGmail);
+            if (currentBaseGmail && currentBaseGmail !== chosen) {
                 currentAlias = '';
                 localStorage.removeItem('nomad_active_alias');
                 emails = [];
-                renderEmails();
-                showToast(`Switched account. Previous alias cleared.`);
+                updateActiveAliasUI('');
+                renderEmptyStream();
+                showToast(`Switched to ${chosen}`);
             }
 
             currentBaseGmail = chosen;
@@ -1723,131 +1303,127 @@
             }
         }
 
-        function markGmailUsedToday(email) {
+        function isCurrentAccountUsedToday() {
+            if (!currentBaseGmail) return false;
+            const todayStr = new Date().toISOString().slice(0, 10);
             const map = getDailyUsageMap();
-            map[email] = new Date().toISOString().slice(0, 10);
+            return map[currentBaseGmail] === todayStr;
+        }
+
+        function markAccountUsedToday(account) {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const map = getDailyUsageMap();
+            map[account] = todayStr;
             localStorage.setItem('nomad_daily_usage', JSON.stringify(map));
             updateDailyLimitUI();
         }
 
-        function isGmailLockedToday(email) {
-            if (!email) return false;
-            const map = getDailyUsageMap();
-            const todayStr = new Date().toISOString().slice(0, 10);
-            return map[email] === todayStr;
-        }
-
         function updateDailyLimitUI() {
-            const locked = isGmailLockedToday(currentBaseGmail);
-            const label = document.getElementById('dailyLimitStatusLabel');
-            const bar = document.getElementById('dailyLimitBar');
-            const pill = document.getElementById('aliasCountPill');
+            const isUsed = isCurrentAccountUsedToday();
             const btn = document.getElementById('btnGenAlias');
-            const btnLabel = document.getElementById('btnGenLabel');
+            const label = document.getElementById('btnGenLabel');
+            const statusLabel = document.getElementById('dailyLimitStatusLabel');
 
-            if (locked) {
-                label.textContent = 'Locked (1/1 Used)';
-                label.style.color = '#ef4444';
-                bar.style.width = '100%';
-                bar.style.background = '#ef4444';
-                pill.textContent = '1/1';
+            if (isUsed) {
                 btn.disabled = true;
-                btnLabel.textContent = 'Used for Today';
+                label.textContent = 'Daily Limit Reached (1/1)';
+                statusLabel.innerHTML = '<span style="color:#FDA4AF;">Used Today (1/1)</span>';
             } else {
-                label.textContent = '1 Ready Today';
-                label.style.color = '#059669';
-                bar.style.width = '0%';
-                bar.style.background = '#111827';
-                pill.textContent = '0/1';
                 btn.disabled = false;
-                btnLabel.textContent = 'Generate Alias';
+                label.textContent = 'Generate New Alias';
+                statusLabel.innerHTML = '<span style="color:#6EE7B7;">Ready (1/1 today)</span>';
             }
         }
 
-        /* ═══════════════════════════════════════════════════════════════
-           GENERATE ALIAS (MAX 2 DOTS & NO REPETITION)
-        ═══════════════════════════════════════════════════════════════ */
-        async function handleGenerateAlias() {
+        async function onGenerateAliasClick() {
             if (!currentBaseGmail) {
                 showToast('Please select a Gmail account first');
                 return;
             }
-            if (isGmailLockedToday(currentBaseGmail)) {
-                showToast('Daily limit reached (1 generate per day). Available tomorrow.');
+
+            if (isCurrentAccountUsedToday()) {
+                showToast('Daily limit reached for this Gmail');
                 return;
             }
 
             const btn = document.getElementById('btnGenAlias');
-            const btnLabel = document.getElementById('btnGenLabel');
+            const label = document.getElementById('btnGenLabel');
             btn.disabled = true;
-            btnLabel.textContent = 'Generating…';
+            label.textContent = 'Generating...';
 
             try {
-                const r = await fetch(BACKEND_URL + '/api/generate-alias', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ gmail_account: currentBaseGmail })
-                });
-                const data = await r.json();
+                const atIdx = currentBaseGmail.indexOf('@');
+                const rawUser = atIdx !== -1 ? currentBaseGmail.slice(0, atIdx).replace(/\./g, '') : currentBaseGmail;
+                const domain = atIdx !== -1 ? currentBaseGmail.slice(atIdx) : '@gmail.com';
 
-                if (!data.ok) {
-                    if (data.exhausted) {
-                        document.getElementById('accountExhaustedBadge').textContent = 'LOCKED: EXHAUSTED';
-                        document.getElementById('accountExhaustedBadge').style.background = '#fee2e2';
-                        document.getElementById('accountExhaustedBadge').style.color = '#dc2626';
-                        alert(`⚠️ Notice: All possible aliases (maximum 2 dots) have been exhausted for ${currentBaseGmail}. This email is now locked.`);
-                    }
-                    showToast(data.error || 'Generation failed');
+                const variants = generateMax2DotVariants(rawUser);
+                const totalVariants = variants.length;
+
+                const { data: usedRows } = await sb
+                    .from('allowed_emails')
+                    .select('email')
+                    .eq('gmail_account', currentBaseGmail);
+
+                const usedSet = new Set((usedRows || []).map(r => r.email.toLowerCase()));
+                const available = variants.map(v => v + domain).filter(e => !usedSet.has(e.toLowerCase()));
+
+                if (available.length === 0) {
+                    showToast(`All ${totalVariants} aliases used for this account`);
+                    btn.disabled = true;
+                    label.textContent = 'All Aliases Used';
                     return;
                 }
 
-                // Successfully generated unique <= 2 dots alias
-                currentAlias = data.alias;
-                localStorage.setItem('nomad_active_alias', currentAlias);
+                const chosenAlias = available[Math.floor(Math.random() * available.length)];
 
-                // Mark as used for today (1 per day rule)
-                markGmailUsedToday(currentBaseGmail);
+                await sb.from('allowed_emails').insert({
+                    email: chosenAlias.toLowerCase(),
+                    gmail_account: currentBaseGmail.toLowerCase(),
+                    created_at: new Date().toISOString()
+                });
 
-                // Update UI
-                updateActiveAliasUI(currentAlias);
-                subscribeToAlias(currentAlias);
-                refreshEmails();
+                markAccountUsedToday(currentBaseGmail);
 
-                showToast(`🎉 Generated: ${currentAlias}`, 'success');
+                currentAlias = chosenAlias;
+                localStorage.setItem('nomad_active_alias', chosenAlias);
+
+                updateActiveAliasUI(chosenAlias);
+                subscribeToAlias(chosenAlias);
+                emails = [];
+                renderEmptyStream();
+
+                autoCopyText(chosenAlias, 'New Alias');
                 calculateDotStats(currentBaseGmail);
-
-            } catch (e) {
-                showToast('Connection error during generation');
-            } finally {
+            } catch (err) {
+                showToast('Error: ' + err.message);
                 updateDailyLimitUI();
             }
         }
 
         function updateActiveAliasUI(alias) {
             const headline = document.getElementById('activeAliasHeadline');
-            headline.textContent = alias || 'No Alias Active';
-            headline.style.fontFamily = "'JetBrains Mono', monospace";
-            headline.style.fontSize = '0.96rem';
+            if (alias) {
+                headline.textContent = alias;
+                headline.style.color = '#FFFFFF';
+            } else {
+                headline.textContent = 'No Alias Active';
+                headline.style.color = 'rgba(255,255,255,0.4)';
+            }
         }
 
         function copyCurrentAlias() {
             if (!currentAlias) {
-                showToast('No active alias to copy');
+                showToast('Generate an alias first');
                 return;
             }
-            autoCopyText(currentAlias, 'Alias Address');
+            autoCopyText(currentAlias, 'Alias');
         }
 
-        /* ═══════════════════════════════════════════════════════════════
-           CALCULATE DOT VARIANTS (MAX 2 DOTS)
-        ═══════════════════════════════════════════════════════════════ */
         function calculateMax2DotCount(username) {
             const clean = username.toLowerCase().replace(/\./g, '');
             const n = clean.length;
             if (n < 2) return 0;
-            const oneDot = n - 1;
-            const twoDots = ((n - 1) * (n - 2)) / 2;
-            return oneDot + twoDots;
+            return (n - 1) + (((n - 1) * (n - 2)) / 2);
         }
 
         async function calculateDotStats(gmail) {
@@ -1857,95 +1433,59 @@
             const totalPossible = calculateMax2DotCount(user);
 
             try {
-                // Query used count from Supabase
-                const { count, error } = await sb
+                const { count } = await sb
                     .from('allowed_emails')
                     .select('*', { count: 'exact', head: true })
                     .eq('gmail_account', gmail);
 
-                const used = error ? 1 : (count || 0);
+                const used = count || 0;
                 const remaining = Math.max(0, totalPossible - used);
 
-                document.getElementById('dotVariantsStat').textContent = `${used} / ${totalPossible} used`;
-                const pct = totalPossible > 0 ? Math.min(100, Math.round((remaining / totalPossible) * 100)) : 0;
-                document.getElementById('dotVariantsBar').style.width = pct + '%';
-
-                const badge = document.getElementById('accountExhaustedBadge');
-                if (remaining === 0 && totalPossible > 0) {
-                    badge.textContent = 'LOCKED: Exhausted';
-                    badge.style.background = '#fee2e2';
-                    badge.style.color = '#dc2626';
-                } else {
-                    badge.textContent = `${remaining} left`;
-                    badge.style.background = 'rgba(255,255,255,0.7)';
-                    badge.style.color = '#111827';
-                }
+                document.getElementById('dotVariantsStat').textContent = `${remaining} left`;
+                document.getElementById('aliasCountPill').textContent = `${remaining}`;
             } catch (e) {
-                document.getElementById('dotVariantsStat').textContent = `Max 2 Dots Policy`;
+                document.getElementById('dotVariantsStat').textContent = `${totalPossible} total`;
             }
         }
 
-        /* ═══════════════════════════════════════════════════════════════
-           AUTO-COPY PREFERENCE SELECTOR (Android, iOS, Windows, QR)
-        ═══════════════════════════════════════════════════════════════ */
-        function setEsimTarget(mode, notify = true) {
-            esimTargetMode = mode;
-            localStorage.setItem('nomad_esim_target', mode);
+        function generateMax2DotVariants(username) {
+            const clean = username.toLowerCase().replace(/\./g, '');
+            const n = clean.length;
+            if (n < 2) return [clean];
 
-            ['pillTargetAndroid', 'pillTargetIos', 'pillTargetWindows', 'pillTargetQr'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.classList.remove('active');
-            });
-
-            const map = {
-                android: 'pillTargetAndroid',
-                ios: 'pillTargetIos',
-                windows: 'pillTargetWindows',
-                qr: 'pillTargetQr'
-            };
-            if (map[mode]) {
-                document.getElementById(map[mode]).classList.add('active');
+            const variants = [];
+            for (let i = 1; i < n; i++) {
+                variants.push(clean.slice(0, i) + '.' + clean.slice(i));
             }
-
-            const labels = {
-                android: 'Target: Android (LPA)',
-                ios: 'Target: iOS (Code)',
-                windows: 'Target: Windows (LPA)',
-                qr: 'Target: Auto QR Screen'
-            };
-            document.getElementById('autoCopyTargetLabel').textContent = labels[mode] || mode;
-
-            if (notify) {
-                showToast(`Auto-copy target set to ${mode.toUpperCase()}`);
+            for (let i = 1; i < n; i++) {
+                for (let j = i + 1; j < n; j++) {
+                    variants.push(clean.slice(0, i) + '.' + clean.slice(i, j) + '.' + clean.slice(j));
+                }
             }
+            return variants;
         }
 
-        /* ═══════════════════════════════════════════════════════════════
-           SUPABASE REALTIME & INBOX STREAM
-        ═══════════════════════════════════════════════════════════════ */
         function subscribeToAlias(alias) {
-            if (!alias) return;
             if (realtimeChan) {
                 sb.removeChannel(realtimeChan);
                 realtimeChan = null;
             }
 
-            realtimeChan = sb.channel('inbox-' + alias)
+            if (!alias) return;
+
+            realtimeChan = sb.channel('realtime_nomad_' + alias)
                 .on('postgres_changes', {
                     event: 'INSERT',
                     schema: 'public',
                     table: 'emails',
                     filter: 'alias=eq.' + alias
                 }, payload => {
-                    const row = payload.new;
-                    const mapped = mapEmailRow(row);
+                    const mapped = mapEmailRow(payload.new);
                     emails.unshift(mapped);
                     renderEmails();
                     handleIncomingNomadAutoActions(mapped);
                 })
-                .subscribe(status => {
-                    console.log('[Supabase Realtime]', status);
-                });
+                .subscribe();
         }
 
         async function refreshEmails() {
@@ -1956,30 +1496,27 @@
                     .select('*')
                     .eq('alias', currentAlias)
                     .order('received_at', { ascending: false })
-                    .limit(30);
+                    .limit(40);
 
                 if (!error && data) {
                     emails = data.map(mapEmailRow);
                     renderEmails();
-                    // Check newest email for instant auto-copy if freshly arrived
                     if (emails.length > 0) {
-                        handleIncomingNomadAutoActions(emails[0], true);
+                        handleIncomingNomadAutoActions(emails[0]);
                     }
                 }
-            } catch (e) {
-                console.warn('refreshEmails error:', e);
-            }
+            } catch (e) {}
         }
 
         function manualRefreshEmails() {
             refreshEmails();
-            showToast('Synced with Nomad stream');
+            showToast('Refreshed inbox');
         }
 
         function mapEmailRow(e) {
             return {
                 id: e.id,
-                sender: e.sender || 'Nomad Support',
+                sender: e.sender || 'Nomad',
                 senderEmail: e.sender_email || e.sender || '',
                 subject: e.subject || '(No Subject)',
                 body: e.body || '',
@@ -1995,115 +1532,144 @@
             return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        /* ═══════════════════════════════════════════════════════════════
-           NOMAD EMAIL PARSER & AUTOMATIC COPY ENGINE
-        ═══════════════════════════════════════════════════════════════ */
         function isNomadEmail(e) {
-            const s = (e.senderEmail + ' ' + e.sender + ' ' + e.subject).toLowerCase();
+            const s = (e.sender + ' ' + e.senderEmail + ' ' + e.subject).toLowerCase();
             return s.includes('getnomad.app') || s.includes('nomad') || s.includes('esim');
         }
 
-        function detectVerificationCode(text) {
-            // Look for 4-8 digit OTP near verification keywords
-            const re = /(?:verification code|your code|passcode|one-time code|otp|enter)[^\d]{0,25}(\d{4,8})/i;
-            const m = text.match(re);
-            if (m) return m[1];
+        function isYearOrCommonNumber(str) {
+            const n = parseInt(str, 10);
+            return n >= 2020 && n <= 2035;
+        }
 
-            // Fallback standalone 6-digit code
-            const m6 = text.match(/\b\d{6}\b/);
-            if (m6) return m6[0];
+        function detectVerificationCode(subject, body) {
+            const s = subject || '';
+            const cleanBody = stripHtml(body || '');
+            const combined = s + ' \n ' + cleanBody;
+
+            const subjLeading = s.match(/^\s*(\d{4,8})\s*(?:is your|is the|[-:]|nomad)/i);
+            if (subjLeading) return subjLeading[1];
+
+            const subjTrailing = s.match(/(?:code|is|:)\s*(\d{4,8})\b/i);
+            if (subjTrailing && !isYearOrCommonNumber(subjTrailing[1])) return subjTrailing[1];
+
+            if (/verif|code|otp|passcode|login|auth|sign/i.test(s)) {
+                const subjAny = s.match(/\b(\d{4,8})\b/);
+                if (subjAny && !isYearOrCommonNumber(subjAny[1])) return subjAny[1];
+            }
+
+            const kwBefore = combined.match(/(?:verification\s*code|security\s*code|confirmation\s*code|login\s*code|sign[\s-]in\s*code|auth(?:entication)?\s*code|one-time\s*(?:pass)?code|passcode|otp|your\s*code|enter\s*code)\s*(?:is|:|=|-)?\s*[:\s]*(\d{4,8})\b/i);
+            if (kwBefore && !isYearOrCommonNumber(kwBefore[1])) return kwBefore[1];
+
+            const kwAfter = combined.match(/\b(\d{4,8})\s*(?:is your|is the|is a)\s*(?:nomad\s*)?(?:verification|security|login|confirmation|auth|passcode|one-time|code)/i);
+            if (kwAfter && !isYearOrCommonNumber(kwAfter[1])) return kwAfter[1];
+
+            const spaced = combined.match(/(?:code|otp|passcode|verification)[^\d]{1,30}(\d{3})[\s-](\d{3})\b/i);
+            if (spaced) return spaced[1] + spaced[2];
+
+            if (body) {
+                const tagMatches = body.matchAll(/<(?:strong|b|h[1-4]|div|span)[^>]*>\s*(\d{4,8})\s*<\/(?:strong|b|h[1-4]|div|span)>/gi);
+                for (const match of tagMatches) {
+                    const val = match[1];
+                    if (!isYearOrCommonNumber(val) && /verif|code|otp|passcode|login|nomad/i.test(combined)) {
+                        return val;
+                    }
+                }
+            }
+
+            const loose = combined.match(/(?:code|verification|otp|passcode)[^\d]{0,100}\b(\d{4,8})\b/i);
+            if (loose && !isYearOrCommonNumber(loose[1])) return loose[1];
+
+            if (/verif|code|otp|passcode|security/i.test(combined)) {
+                const m6 = combined.match(/\b\d{6}\b/);
+                if (m6 && !isYearOrCommonNumber(m6[0])) return m6[0];
+            }
 
             return null;
+        }
+
+        function isVerificationEmail(e) {
+            if (detectVerificationCode(e.subject, e.body)) return true;
+            const text = (e.subject + ' ' + stripHtml(e.body)).toLowerCase();
+            return /verif|otp|passcode|one-time|security code|confirmation code|login code|auth code|your code|sign-in code/i.test(text);
+        }
+
+        function isEsimEmail(e) {
+            if (parseEsimContent(e.body)) return true;
+            const text = (e.subject + ' ' + stripHtml(e.body)).toLowerCase();
+            return /esim|activation code|sm-dp\+|qr code|lpa:1\$|iccid|manual installation/i.test(text);
         }
 
         function parseEsimContent(content) {
             if (!content) return null;
 
-            // Extract SM-DP+ Address
             const smdpMatch = content.match(/SM-DP\+?\s*Address:?\s*([a-zA-Z0-9.-]+)/i);
             const smdp = smdpMatch ? smdpMatch[1].trim() : 'rsp.esim.pub';
 
-            // Extract Activation Code
-            const actMatch = content.match(/Activation\s*Code:?\s*([A-Za-z0-9]+)/i);
-            const activationCode = actMatch ? actMatch[1].trim() : '';
+            const actMatch = content.match(/Activation\s*Code:?\s*([A-Z0-9-$]+)/i);
+            let actCode = actMatch ? actMatch[1].trim() : '';
 
-            // Extract LPA string
-            const lpaMatch = content.match(/(LPA:1\$[a-zA-Z0-9.-]+\$[A-Za-z0-9]+)/i);
-            const lpa = lpaMatch ? lpaMatch[1].trim() : (activationCode ? `LPA:1$${smdp}$${activationCode}` : '');
-
-            // Extract QR Code Image if present in HTML
-            let qrImg = '';
-            const imgMatch = content.match(/<img[^>]+src=["']([^"']*(?:qr|barcode|esim)[^"']*)["']/i);
-            if (imgMatch) {
-                qrImg = imgMatch[1];
-            } else if (lpa) {
-                // Fallback: Generate real-time SVG/PNG QR Code from LPA string
-                qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(lpa)}`;
+            let lpa = '';
+            const lpaMatch = content.match(/(LPA:1\$[^\s<>"']+)/i);
+            if (lpaMatch) {
+                lpa = lpaMatch[1].trim();
+            } else if (actCode) {
+                lpa = `LPA:1$${smdp}$${actCode}`;
             }
 
-            if (!activationCode && !lpa) return null;
+            let qrImg = '';
+            const imgMatch = content.match(/<img[^>]+src=["'](data:image\/[^"']+|https:\/\/[^"']+(?:qr|esim)[^"']*)["']/i);
+            if (imgMatch) {
+                qrImg = imgMatch[1];
+            }
 
-            return {
-                smdp,
-                activationCode,
-                lpa,
-                qrImg
-            };
+            if (lpa || actCode || qrImg) {
+                return { smdp, activationCode: actCode, lpa, qrImg };
+            }
+
+            return null;
         }
 
-        /**
-         * CORE REQUIREMENT:
-         * Once the email shows in the UI, user doesn't need to copy it manually.
-         * Their device will AUTOMATICALLY copy the verification code or eSIM code!
-         */
-        function handleIncomingNomadAutoActions(e, isFirstLoad = false) {
-            const fullText = (e.subject + ' ' + stripHtml(e.body));
-            const otp = detectVerificationCode(fullText);
-            const esim = parseEsimContent(e.body || fullText);
+        function handleIncomingNomadAutoActions(e) {
+            const otp = detectVerificationCode(e.subject, e.body);
+            const esim = parseEsimContent(e.body);
 
             if (esim) {
                 latestEsimData = esim;
                 renderInspectorEsim(esim);
             }
 
-            // 1. Verification Code Auto-Copy (Once per code)
             if (otp && lastCopiedToken !== otp) {
                 lastCopiedToken = otp;
-                autoCopyText(otp, `Nomad Verification Code [${otp}]`);
-                renderInspectorOtp(otp, e.sender);
+                currentActiveOtp = otp;
+                autoCopyText(otp, `Code ${otp}`);
+                renderInspectorOtp(otp);
+                showOtpAlertBar(otp);
                 return;
             }
 
-            // 2. eSIM Installation Auto-Copy / Auto-QR based on user preference
             if (esim && lastCopiedToken !== esim.lpa) {
                 lastCopiedToken = esim.lpa;
 
                 if (esimTargetMode === 'android') {
-                    autoCopyText(esim.lpa, 'Android eSIM LPA Code');
+                    autoCopyText(esim.lpa, 'Android LPA');
                 } else if (esimTargetMode === 'ios') {
-                    autoCopyText(esim.activationCode || esim.lpa, 'iOS Activation Code');
+                    autoCopyText(esim.activationCode || esim.lpa, 'iOS Code');
                 } else if (esimTargetMode === 'windows') {
-                    autoCopyText(esim.lpa, 'Windows Laptop eSIM Code');
+                    autoCopyText(esim.lpa, 'Windows LPA');
                 } else if (esimTargetMode === 'qr') {
                     openQrModal();
-                    showToast('📱 eSIM QR Code automatically displayed!');
                 }
             }
         }
 
         function autoCopyText(text, label) {
             if (!text) return;
+            fallbackCopyText(text);
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => {
-                    showToast(`⚡ ${label} copied to clipboard!`);
-                }).catch(() => {
-                    fallbackCopyText(text);
-                    showToast(`⚡ ${label} copied!`);
-                });
-            } else {
-                fallbackCopyText(text);
-                showToast(`⚡ ${label} copied!`);
+                navigator.clipboard.writeText(text).catch(() => {});
             }
+            showToast(`${label} copied!`);
         }
 
         function fallbackCopyText(text) {
@@ -2111,39 +1677,41 @@
             ta.value = text;
             ta.style.position = 'fixed';
             ta.style.opacity = '0';
+            ta.style.pointerEvents = 'none';
             document.body.appendChild(ta);
             ta.focus();
             ta.select();
-            try { document.execCommand('copy'); } catch (e) { }
+            try { document.execCommand('copy'); } catch (e) {}
             document.body.removeChild(ta);
         }
 
-        function stripHtml(html) {
-            return (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        function showOtpAlertBar(code) {
+            currentActiveOtp = code;
+            const bar = document.getElementById('otpAlertBar');
+            document.getElementById('otpAlertCode').textContent = code;
+            bar.classList.add('visible');
         }
 
-        /* ═══════════════════════════════════════════════════════════════
-           RENDER STREAM & INSPECTOR
-        ═══════════════════════════════════════════════════════════════ */
+        function autoCopyActiveOtp() {
+            if (currentActiveOtp) {
+                autoCopyText(currentActiveOtp, `Code ${currentActiveOtp}`);
+            }
+        }
+
+        function stripHtml(html) {
+            return (html || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
         function renderEmails() {
             const list = document.getElementById('emailStreamList');
-            const kw = (document.getElementById('filterKeywordInput').value || '').toLowerCase();
-
             let filtered = emails;
 
-            // Filter by category pill
             if (activeFilter === 'verification') {
-                filtered = filtered.filter(e => detectVerificationCode(e.subject + ' ' + stripHtml(e.body)));
+                filtered = filtered.filter(isVerificationEmail);
             } else if (activeFilter === 'esim') {
-                filtered = filtered.filter(e => parseEsimContent(e.body));
+                filtered = filtered.filter(isEsimEmail);
             } else if (activeFilter === 'all') {
-                // Specifically Nomad emails only (Rule: "only nomad emails will be shown")
                 filtered = filtered.filter(isNomadEmail);
-            }
-
-            // Filter by search keyword
-            if (kw) {
-                filtered = filtered.filter(e => (e.subject + ' ' + e.sender + ' ' + e.body).toLowerCase().includes(kw));
             }
 
             if (!filtered.length) {
@@ -2152,120 +1720,138 @@
             }
 
             list.innerHTML = filtered.map((e, idx) => {
-                const fullText = e.subject + ' ' + stripHtml(e.body);
-                const otp = detectVerificationCode(fullText);
+                const otp = detectVerificationCode(e.subject, e.body);
                 const esim = parseEsimContent(e.body);
 
                 let chipHtml = '';
                 if (otp) {
-                    chipHtml += `<span class="code-badge-pill">OTP: ${otp}</span><span class="auto-copied-badge">⚡ Auto-Copied</span>`;
+                    chipHtml += `
+                        <span class="tag-otp">
+                            ${otp}
+                            <button class="tag-btn-copy" onclick="event.stopPropagation(); autoCopyText('${otp}', 'Code')">Copy</button>
+                        </span>
+                        <span class="tag-auto-note">Auto-copied</span>
+                    `;
                 }
                 if (esim) {
-                    chipHtml += `<span class="esim-badge-pill">📱 eSIM Ready</span>`;
+                    chipHtml += `
+                        <span class="tag-esim-badge">
+                            eSIM Ready
+                            <button class="tag-btn-copy" onclick="event.stopPropagation(); autoCopyText('${escHtml(esim.lpa)}', 'LPA')">Copy LPA</button>
+                        </span>
+                    `;
                 }
 
                 return `
-          <div class="email-item-row unread" onclick="openEmailDetail(${idx})">
-            <div class="nomad-avatar">N</div>
-            <div class="email-meta-col">
-              <div class="email-top-line">
-                <span class="sender-nomad">${escHtml(e.sender)}</span>
-                <span class="badge-verified">Nomad</span>
-                <span class="email-time-tag">${escHtml(e.time)}</span>
-              </div>
-              <div class="email-subject-line">${escHtml(e.subject)}</div>
-              <div class="chips-line">${chipHtml}</div>
-            </div>
-          </div>
-        `;
+                    <div class="email-item" onclick="openEmailDetail(${idx})">
+                        <div class="email-icon-box">N</div>
+                        <div class="email-body-col">
+                            <div class="email-meta-line">
+                                <span class="email-sender-title">${escHtml(e.sender)}</span>
+                                <span class="email-timestamp">${escHtml(e.time)}</span>
+                            </div>
+                            <div class="email-subject-text">${escHtml(e.subject)}</div>
+                            <div class="email-tags-row">${chipHtml}</div>
+                        </div>
+                    </div>
+                `;
             }).join('');
         }
 
         function renderEmptyStream() {
             const list = document.getElementById('emailStreamList');
             list.innerHTML = `
-        <div class="empty-stream-box">
-          <div class="empty-stream-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          </div>
-          <div style="font-size:0.9rem;font-weight:700;color:var(--text-main);margin-bottom:4px;">Waiting for Nomad emails</div>
-          <div style="font-size:0.75rem;">Generate or select your alias above. Incoming Nomad verification and eSIM codes will auto-copy here.</div>
-        </div>
-      `;
+                <div class="stream-empty">
+                    <strong style="color:#FFF;">No emails in this tab</strong>
+                    <span>Generate an alias above and use it on Nomad. Codes and eSIMs appear here automatically.</span>
+                </div>
+            `;
         }
 
-        function renderInspectorOtp(otp, sender) {
-            const panel = document.getElementById('inspectorPanel');
+        function selectStreamFilter(type) {
+            activeFilter = type;
+            document.querySelectorAll('.filter-pill-tab').forEach(b => {
+                b.classList.toggle('active', b.dataset.filter === type);
+            });
+            renderEmails();
+        }
+
+        function clearStreamView() {
+            emails = [];
+            renderEmails();
+            showToast('Cleared list');
+        }
+
+        function renderInspectorOtp(otp) {
             document.getElementById('inspectorHeadline').textContent = 'Verification Code';
+            const panel = document.getElementById('inspectorPanel');
             panel.innerHTML = `
-        <div style="text-align:center;padding:12px 0;">
-          <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:6px;">Latest verification code from ${escHtml(sender)}:</div>
-          <div style="font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:800;color:#fde047;letter-spacing:0.15em;">${otp}</div>
-          <div style="margin-top:8px;font-size:0.72rem;color:#10b981;font-weight:700;">⚡ Copied to clipboard automatically!</div>
-        </div>
-      `;
-            document.getElementById('inspectorBtnText').textContent = 'Copy Code Again';
+                <div>
+                    <div style="font-size:0.68rem;color:#6EE7B7;font-weight:700;">Auto-copied to clipboard</div>
+                    <div class="code-matrix-val">${otp}</div>
+                </div>
+                <button class="btn-white-circle" onclick="autoCopyText('${otp}', 'Code')" title="Copy Code">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                    </svg>
+                </button>
+            `;
         }
 
         function renderInspectorEsim(esim) {
+            document.getElementById('inspectorHeadline').textContent = 'eSIM Ready';
             const panel = document.getElementById('inspectorPanel');
-            document.getElementById('inspectorHeadline').textContent = 'Nomad eSIM Active';
             panel.innerHTML = `
-        <div class="qr-container">
-          <img class="qr-img" src="${esim.qrImg}" alt="Nomad eSIM QR" />
-          <div class="qr-label">Scan to Install eSIM</div>
-        </div>
-
-        <div class="code-row">
-          <div class="code-label">Android / Windows (LPA)</div>
-          <div class="code-box">
-            <span style="overflow:hidden;text-overflow:ellipsis;">${escHtml(esim.lpa)}</span>
-            <button class="copy-mini-btn" onclick="autoCopyText('${escHtml(esim.lpa)}', 'LPA Code')">Copy</button>
-          </div>
-        </div>
-
-        <div class="code-row">
-          <div class="code-label">iOS Activation Code</div>
-          <div class="code-box">
-            <span>${escHtml(esim.activationCode || 'Auto in LPA')}</span>
-            <button class="copy-mini-btn" onclick="autoCopyText('${escHtml(esim.activationCode)}', 'iOS Code')">Copy</button>
-          </div>
-        </div>
-      `;
-            document.getElementById('inspectorBtnText').textContent = 'Enlarge QR Screen';
+                <div style="min-width:0;flex:1;">
+                    <div style="font-size:0.68rem;color:#6EE7B7;font-weight:700;">LPA Code Captured</div>
+                    <div style="font-family:var(--font-mono);font-size:0.76rem;color:#FFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700;">${escHtml(esim.lpa)}</div>
+                </div>
+                <div style="display:flex;gap:5px;flex-shrink:0;">
+                    <button class="btn-copy-small" onclick="autoCopyText('${escHtml(esim.lpa)}', 'LPA')">Copy LPA</button>
+                    <button class="btn-copy-small" onclick="openQrModal()">QR</button>
+                </div>
+            `;
         }
 
         function handleInspectorAction() {
             if (latestEsimData) {
                 openQrModal();
             } else if (lastCopiedToken) {
-                autoCopyText(lastCopiedToken, 'Verification Code');
+                autoCopyText(lastCopiedToken, 'Code');
             } else {
-                showToast('No active eSIM code captured yet');
+                showToast('No code received yet');
             }
         }
 
         function copyActiveLpa() {
             if (latestEsimData && latestEsimData.lpa) {
-                autoCopyText(latestEsimData.lpa, 'LPA Code');
+                autoCopyText(latestEsimData.lpa, 'LPA');
             }
         }
 
-        /* ═══════════════════════════════════════════════════════════════
-           MODALS & DIALOGS
-        ═══════════════════════════════════════════════════════════════ */
-        function openQrModal() {
-            if (!latestEsimData || !latestEsimData.qrImg) {
-                showToast('No eSIM QR code available yet');
-                return;
-            }
-            document.getElementById('modalQrImg').src = latestEsimData.qrImg;
-            document.getElementById('modalLpaLabel').textContent = latestEsimData.lpa || '';
-            document.getElementById('qrModalOverlay').classList.add('open');
-        }
+        function setEsimTarget(mode, notify = true) {
+            esimTargetMode = mode;
+            localStorage.setItem('nomad_esim_target', mode);
 
-        function closeQrModal() {
-            document.getElementById('qrModalOverlay').classList.remove('open');
+            document.querySelectorAll('.target-pill').forEach(p => p.classList.remove('active'));
+            const map = {
+                android: 'pillTargetAndroid',
+                ios: 'pillTargetIos',
+                windows: 'pillTargetWindows',
+                qr: 'pillTargetQr'
+            };
+            const activeEl = document.getElementById(map[mode]);
+            if (activeEl) activeEl.classList.add('active');
+
+            const labelMap = {
+                android: 'Auto-copy: Android LPA',
+                ios: 'Auto-copy: iOS Code',
+                windows: 'Auto-copy: Windows LPA',
+                qr: 'Auto-open: QR Code'
+            };
+            document.getElementById('autoCopyTargetLabel').textContent = labelMap[mode] || '';
+
+            if (notify) showToast(`Mode: ${mode.toUpperCase()}`);
         }
 
         function openEmailDetail(idx) {
@@ -2275,19 +1861,19 @@
             document.getElementById('emailModalSubject').textContent = e.subject;
             document.getElementById('emailModalFrom').textContent = `From: ${e.sender} <${e.senderEmail}> • ${e.fullDate}`;
 
-            const otp = detectVerificationCode(e.subject + ' ' + stripHtml(e.body));
+            const otp = detectVerificationCode(e.subject, e.body);
             const otpSec = document.getElementById('emailModalOtpSection');
             if (otp) {
                 otpSec.style.display = 'block';
                 otpSec.innerHTML = `
-          <div style="background:#111827;border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
-            <div>
-              <div style="font-size:0.7rem;color:#94a3b8;">Verification Code</div>
-              <div style="font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:800;color:#fde047;">${otp}</div>
-            </div>
-            <button class="btn-coral" onclick="autoCopyText('${otp}','Verification Code')">Copy Code</button>
-          </div>
-        `;
+                    <div style="background:rgba(225,29,72,0.16);border:1px solid rgba(225,29,72,0.45);border-radius:14px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+                        <div>
+                            <div style="font-size:0.68rem;color:#FDA4AF;font-weight:700;">VERIFICATION CODE</div>
+                            <div style="font-family:var(--font-matrix);font-size:1.35rem;font-weight:700;color:#FFF;">${otp}</div>
+                        </div>
+                        <button class="btn-crimson-pill" onclick="autoCopyText('${otp}','Code')">Copy Code</button>
+                    </div>
+                `;
             } else {
                 otpSec.style.display = 'none';
             }
@@ -2307,16 +1893,27 @@
             document.getElementById('emailModalOverlay').classList.remove('open');
         }
 
-        /* ═══════════════════════════════════════════════════════════════
-           ADMIN PANEL (ADD, UPDATE, DELETE GMAILS)
-        ═══════════════════════════════════════════════════════════════ */
+        function openQrModal() {
+            if (!latestEsimData || !latestEsimData.qrImg) {
+                showToast('No eSIM QR code available yet');
+                return;
+            }
+            document.getElementById('modalQrImg').src = latestEsimData.qrImg;
+            document.getElementById('modalLpaLabel').textContent = latestEsimData.lpa || '';
+            document.getElementById('qrModalOverlay').classList.add('open');
+        }
+
+        function closeQrModal() {
+            document.getElementById('qrModalOverlay').classList.remove('open');
+        }
+
         function openAdminModal() {
             document.getElementById('adminModalOverlay').classList.add('open');
-            if (isAdminAuth) {
-                showAdminContent();
-            } else {
+            if (isAdminAuth) showAdminContent();
+            else {
                 document.getElementById('adminAuthLock').style.display = 'block';
                 document.getElementById('adminPanelContent').style.display = 'none';
+                setTimeout(() => document.getElementById('adminSecretInput').focus(), 100);
             }
         }
 
@@ -2324,14 +1921,14 @@
             document.getElementById('adminModalOverlay').classList.remove('open');
         }
 
-        function authenticateAdmin() {
-            const val = document.getElementById('adminSecretInput').value.trim();
-            if (val === adminSecret || val === 'SM-2026') {
+        function verifyAdminSecret() {
+            const input = document.getElementById('adminSecretInput').value.trim();
+            if (input === adminSecret || input === 'SM-2026') {
                 isAdminAuth = true;
-                localStorage.setItem('nomad_admin_secret', val);
+                localStorage.setItem('nomad_admin_secret', input);
                 showAdminContent();
             } else {
-                alert('Invalid Admin password');
+                showToast('Wrong password');
             }
         }
 
@@ -2348,35 +1945,27 @@
                 const btn = document.getElementById('admTab' + t.charAt(0).toUpperCase() + t.slice(1));
                 const sec = document.getElementById('admSection' + t.charAt(0).toUpperCase() + t.slice(1));
                 if (btn) btn.classList.toggle('active', t === tab);
-                if (sec) sec.style.display = (t === tab ? 'block' : 'none');
+                if (sec) sec.style.display = (t === tab) ? 'block' : 'none';
             });
             if (tab === 'accounts') loadAdminStats();
-            if (tab === 'config') {
-                const input = document.getElementById('admBackendUrlInput');
-                if (input) input.value = BACKEND_URL;
-            }
         }
 
         function saveBackendUrl() {
-            let val = document.getElementById('admBackendUrlInput').value.trim();
-            if (!val) {
-                showToast('Please enter a valid URL');
+            const val = document.getElementById('admBackendUrlInput').value.trim();
+            if (!val.startsWith('http')) {
+                showToast('Enter a valid URL');
                 return;
             }
-            if (!val.startsWith('http://') && !val.startsWith('https://')) {
-                val = 'https://' + val;
-            }
-            val = val.replace(/\/+$/, '');
             BACKEND_URL = val;
             localStorage.setItem('nomad_backend_url', val);
-            showToast(`Backend updated: ${val}`);
+            showToast('Saved server URL');
             switchAdminTab('accounts');
             loadAvailableGmails();
         }
 
         async function loadAdminStats() {
             const tbody = document.getElementById('admAccountsTbody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading…</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
 
             try {
                 const r = await fetch(BACKEND_URL + '/api/admin/gmail-accounts/stats', {
@@ -2385,50 +1974,42 @@
                 const data = await r.json();
 
                 if (!data.ok || !data.stats) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444;">Failed to load accounts</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#FDA4AF;">Failed to load</td></tr>';
                     return;
                 }
 
                 if (!data.stats.length) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">No accounts added yet. Click "+ Add Gmail" to link one!</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px;">No accounts yet.</td></tr>';
                     return;
                 }
 
                 tbody.innerHTML = data.stats.map(s => {
                     const statusBadge = s.authenticated
-                        ? '<span style="color:#10b981;font-weight:700;display:inline-flex;align-items:center;gap:5px;"><span style="width:7px;height:7px;border-radius:50%;background:#10b981;display:inline-block;"></span>Linked</span>'
-                        : `<button onclick="admLinkAccount('${escHtml(s.email)}')" class="btn-text-sm" style="color:#ff5733;font-weight:700;border:1px solid #ff5733;border-radius:6px;padding:2px 8px;background:rgba(255,87,51,0.08);">Link Google</button>`;
+                        ? '<span style="color:#6EE7B7;font-weight:700;">Linked</span>'
+                        : `<button onclick="admLinkAccount('${escHtml(s.email)}')" class="tag-btn-copy">Link</button>`;
 
                     return `
-                      <tr>
-                        <td><strong>${escHtml(s.email)}</strong></td>
-                        <td>${statusBadge}</td>
-                        <td>${s.used_variants} / ${s.total_variants} ${s.exhausted ? '<span style="color:#ef4444;font-weight:700;">(LOCKED)</span>' : ''}</td>
-                        <td>${s.used_today ? '<span style="color:#ef4444;font-weight:700;">Used (1/1)</span>' : '<span style="color:#10b981;font-weight:700;">Available</span>'}</td>
-                        <td>
-                          <button onclick="admToggleVisible('${escHtml(s.email)}', ${!s.visible})" style="border:none;background:none;cursor:pointer;font-weight:700;color:${s.visible ? '#10b981' : '#94a3b8'};">
-                            ${s.visible ? 'Visible' : 'Hidden'}
-                          </button>
-                        </td>
-                        <td>
-                          <button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-text-sm" title="Reset today limit" style="margin-right:6px;">Reset</button>
-                          <button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-text-sm" style="color:#ef4444;" title="Delete">Delete</button>
-                        </td>
-                      </tr>
+                        <tr>
+                            <td><strong style="color:#FFF;">${escHtml(s.email)}</strong></td>
+                            <td>${statusBadge}</td>
+                            <td>${s.used_variants}/${s.total_variants}</td>
+                            <td>${s.used_today ? '<span style="color:#FDA4AF;">Used</span>' : '<span style="color:#6EE7B7;">Ready</span>'}</td>
+                            <td>
+                                <button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-mini-tool" style="margin-right:4px;">Reset</button>
+                                <button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-mini-tool" style="color:#FDA4AF;">Delete</button>
+                            </td>
+                        </tr>
                     `;
                 }).join('');
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Error communicating with server</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Server error</td></tr>';
             }
         }
 
         function admLinkAccount(email) {
-            showToast('Redirecting to Google Sign-In...');
+            showToast('Opening Google Sign-In...');
             const returnUrl = window.location.origin + window.location.pathname;
-            const targetUrl = `${BACKEND_URL}/auth/login?account=${encodeURIComponent(email || '')}&return_to=${encodeURIComponent(returnUrl)}`;
-            setTimeout(() => {
-                window.location.href = targetUrl;
-            }, 300);
+            window.location.href = `${BACKEND_URL}/auth/login?account=${encodeURIComponent(email || '')}&return_to=${encodeURIComponent(returnUrl)}`;
         }
 
         async function admAddGmailAccount() {
@@ -2437,7 +2018,6 @@
             const visibleCheckbox = document.getElementById('admNewGmailVisible');
             const visible = visibleCheckbox ? visibleCheckbox.checked : true;
 
-            // Pre-register in Supabase if an email was typed
             if (email && email.includes('@')) {
                 try {
                     await fetch(BACKEND_URL + '/api/admin/gmail-accounts/add', {
@@ -2448,36 +2028,15 @@
                         },
                         body: JSON.stringify({ email, visible })
                     });
-                } catch (e) {
-                    console.warn('Pre-add note:', e);
-                }
+                } catch (e) {}
             }
 
-            showToast('Redirecting to Google Sign-In...');
+            showToast('Opening Google Sign-In...');
             const returnUrl = window.location.origin + window.location.pathname;
-            const targetUrl = `${BACKEND_URL}/auth/login?account=${encodeURIComponent(email)}&return_to=${encodeURIComponent(returnUrl)}`;
-            setTimeout(() => {
-                window.location.href = targetUrl;
-            }, 300);
-        }
-
-        async function admToggleVisible(account, newVisible) {
-            try {
-                await fetch(BACKEND_URL + '/api/admin/gmail-accounts/set-visibility', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-admin-secret': adminSecret
-                    },
-                    body: JSON.stringify({ account, visible: newVisible })
-                });
-                loadAdminStats();
-                loadAvailableGmails();
-            } catch (e) { }
+            window.location.href = `${BACKEND_URL}/auth/login?account=${encodeURIComponent(email)}&return_to=${encodeURIComponent(returnUrl)}`;
         }
 
         async function admResetDaily(account) {
-            if (!confirm(`Reset today's daily generation limit for ${account}?`)) return;
             try {
                 await fetch(BACKEND_URL + '/api/admin/gmail-accounts/reset-daily', {
                     method: 'POST',
@@ -2487,20 +2046,18 @@
                     },
                     body: JSON.stringify({ account })
                 });
-                // Clear local storage daily map as well
                 const map = getDailyUsageMap();
                 delete map[account];
                 localStorage.setItem('nomad_daily_usage', JSON.stringify(map));
                 updateDailyLimitUI();
                 loadAdminStats();
-                showToast(`Reset daily lock for ${account}`);
+                showToast(`Reset ${account}`);
             } catch (e) {
-                showToast('Failed to reset daily limit');
+                showToast('Reset failed');
             }
         }
 
         async function admDeleteAccount(account) {
-            if (!confirm(`Are you sure you want to remove ${account}?`)) return;
             try {
                 await fetch(BACKEND_URL + '/api/admin/gmail-accounts/remove', {
                     method: 'POST',
@@ -2512,58 +2069,27 @@
                 });
                 loadAdminStats();
                 loadAvailableGmails();
-                showToast(`Deleted ${account}`);
+                showToast(`Removed ${account}`);
             } catch (e) {
                 showToast('Delete failed');
             }
         }
 
-        /* ═══════════════════════════════════════════════════════════════
-           HELPERS & UI UTILITIES
-        ═══════════════════════════════════════════════════════════════ */
-        function selectStreamFilter(type) {
-            activeFilter = type;
-            document.querySelectorAll('.pill-tab').forEach(b => {
-                if (b.dataset.filter === type) b.classList.add('active');
-                else b.classList.remove('active');
-            });
-            renderEmails();
-        }
-
-        function filterEmails() {
-            renderEmails();
-        }
-
-        function clearStreamView() {
-            emails = [];
-            renderEmails();
-            showToast('View cleared');
-        }
-
-        function clearCurrentSession() {
-            if (confirm('Clear current alias session? You can generate another when ready.')) {
-                currentAlias = '';
-                localStorage.removeItem('nomad_active_alias');
-                emails = [];
-                updateActiveAliasUI('');
-                renderEmptyStream();
-                showToast('Session reset');
-            }
-        }
-
-        function showToast(msg, type = 'normal') {
+        function showToast(msg) {
             const banner = document.getElementById('toastBanner');
-            const text = document.getElementById('toastMessage');
-            text.textContent = msg;
+            document.getElementById('toastMessage').textContent = msg;
             banner.classList.add('show');
-            clearTimeout(banner._timer);
-            banner._timer = setTimeout(() => {
-                banner.classList.remove('show');
-            }, 3200);
+            setTimeout(() => banner.classList.remove('show'), 2500);
         }
 
-        function escHtml(s) {
-            return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        function escHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
     </script>
 </body>

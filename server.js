@@ -294,7 +294,8 @@ app.get('/auth/login', async (req, res) => {
   try {
     const accountEmail = (req.query.account || '').trim().toLowerCase() || undefined;
     const returnTo = req.query.return_to || 'https://itzmebenz13.github.io/mailshot/';
-    const authUrl = getAuthUrl(accountEmail, returnTo);
+    const serverSlot = parseInt(req.query.server_slot) || 1;
+    const authUrl = getAuthUrl(accountEmail, returnTo, serverSlot);
     return res.redirect(authUrl);
   } catch (err) {
     console.error('auth/login error:', err.message);
@@ -1708,7 +1709,13 @@ app.get('/api/public/gmail-accounts', async function (req, res) {
     });
 
     const result = active.length > 0 ? active : visibleAccounts;
-    return res.json({ ok: true, accounts: result.map(a => ({ email: a.email })) });
+    return res.json({
+      ok: true,
+      accounts: result.map(a => ({
+        email: a.email,
+        server_slot: (a.tokens && a.tokens.server_slot) ? parseInt(a.tokens.server_slot) : 1
+      }))
+    });
   } catch (e) {
     console.error('/api/public/gmail-accounts error:', e.message);
     return res.status(500).json({ ok: false, error: e.message });
@@ -1925,12 +1932,49 @@ app.get('/api/admin/gmail-accounts/stats', requireAdminSecret, async function (r
         remaining_variants: Math.max(0, totalVariants - usedCount),
         exhausted: totalVariants > 0 && usedCount >= totalVariants,
         used_today: usedToday,
-        added_at: acc.added_at
+        added_at: acc.added_at,
+        server_slot: (acc.tokens && acc.tokens.server_slot) ? parseInt(acc.tokens.server_slot) : 1
       };
     });
 
     return res.json({ ok: true, stats });
   } catch (e) {
+    return res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/**
+ * POST /api/admin/gmail-accounts/set-server-slot
+ * Body: { account: "user@gmail.com", server_slot: 1|2|3 }
+ */
+app.post('/api/admin/gmail-accounts/set-server-slot', requireAdminSecret, async function (req, res) {
+  try {
+    const account = (req.body.account || '').trim().toLowerCase();
+    const server_slot = parseInt(req.body.server_slot) || 1;
+    if (!account) return res.status(400).json({ ok: false, error: 'Missing account' });
+
+    const { data: row, error: fetchErr } = await supabase
+      .from('gmail_accounts')
+      .select('tokens')
+      .eq('email', account)
+      .maybeSingle();
+
+    if (fetchErr) throw fetchErr;
+
+    const currentTokens = (row && row.tokens) ? row.tokens : {};
+    const updatedTokens = Object.assign({}, currentTokens, { server_slot });
+
+    const { error: updErr } = await supabase
+      .from('gmail_accounts')
+      .update({ tokens: updatedTokens })
+      .eq('email', account);
+
+    if (updErr) throw updErr;
+
+    console.log(`[ADMIN] ${account} assigned to Server slot ${server_slot}`);
+    return res.json({ ok: true, account, server_slot });
+  } catch (e) {
+    console.error('set-server-slot error:', e.message);
     return res.status(500).json({ ok: false, error: e.message });
   }
 });

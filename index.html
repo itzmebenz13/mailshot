@@ -3264,43 +3264,50 @@
             const s = subject || '';
             const cleanBody = stripHtml(body || '');
             const combined = s + ' \n ' + cleanBody;
+            const KW = /verif|code|otp|passcode|login|log in|sign[\s-]?in|auth|security|confirm|one[\s-]?time|pin\b/i;
 
-            const subjLeading = s.match(/^\s*(\d{4,8})\s*(?:is your|is the|[-:]|nomad)/i);
+            // 1. Subject: "482913 is your code" / "Your code: 482913"
+            const subjLeading = s.match(/^\s*(\d{4,8})\s*(?:is your|is the|[-:|]|nomad)/i);
             if (subjLeading) return subjLeading[1];
-
-            const subjTrailing = s.match(/(?:code|is|:)\s*(\d{4,8})\b/i);
-            if (subjTrailing && !isYearOrCommonNumber(subjTrailing[1])) return subjTrailing[1];
-
-            if (/verif|code|otp|passcode|login|auth|sign/i.test(s)) {
+            const subjTrailing = s.match(/(?:code|otp|passcode|pin|is|:)\s*(\d{4,8})\b/i);
+            if (subjTrailing && (KW.test(s) || !isYearOrCommonNumber(subjTrailing[1]))) return subjTrailing[1];
+            if (KW.test(s)) {
                 const subjAny = s.match(/\b(\d{4,8})\b/);
                 if (subjAny && !isYearOrCommonNumber(subjAny[1])) return subjAny[1];
             }
 
-            const kwBefore = combined.match(/(?:verification\s*code|security\s*code|confirmation\s*code|login\s*code|sign[\s-]in\s*code|auth(?:entication)?\s*code|one-time\s*(?:pass)?code|passcode|otp|your\s*code|enter\s*code)\s*(?:is|:|=|-)?\s*[:\s]*(\d{4,8})\b/i);
-            if (kwBefore && !isYearOrCommonNumber(kwBefore[1])) return kwBefore[1];
+            // 2. Keyword right next to the number (either order)
+            const kwBefore = combined.match(/(?:verification|security|confirmation|login|log[\s-]?in|sign[\s-]?in|auth(?:entication)?|one[\s-]?time(?:\s*pass)?|access|activation|your|enter|use)?\s*(?:code|otp|passcode|pin)\s*(?:is|:|=|-|\u2013|\u2014)?\s*[:\s]*(\d{4,8})\b/i);
+            if (kwBefore) return kwBefore[1];
+            const kwAfter = combined.match(/\b(\d{4,8})\s*(?:is\s*(?:your|the|a)|as your)\s*(?:nomad\s*)?(?:verification|security|login|confirmation|auth|passcode|one-time|code|otp)/i);
+            if (kwAfter) return kwAfter[1];
 
-            const kwAfter = combined.match(/\b(\d{4,8})\s*(?:is your|is the|is a)\s*(?:nomad\s*)?(?:verification|security|login|confirmation|auth|passcode|one-time|code)/i);
-            if (kwAfter && !isYearOrCommonNumber(kwAfter[1])) return kwAfter[1];
+            // 3. Digits grouped or spaced out: "482 913", "482-913", "4 8 2 9 1 3"
+            const grouped = combined.match(/(?:code|otp|passcode|verification|pin)[^\d]{1,40}(\d{3})[\s-](\d{3})\b/i);
+            if (grouped) return grouped[1] + grouped[2];
+            const spaced = combined.match(/(?:code|otp|passcode|verification|pin)[^\d]{1,40}((?:\d\s){3,7}\d)\b/i);
+            if (spaced) return spaced[1].replace(/\s/g, '');
 
-            const spaced = combined.match(/(?:code|otp|passcode|verification)[^\d]{1,30}(\d{3})[\s-](\d{3})\b/i);
-            if (spaced) return spaced[1] + spaced[2];
-
-            if (body) {
-                const tagMatches = body.matchAll(/<(?:strong|b|h[1-4]|div|span)[^>]*>\s*(\d{4,8})\s*<\/(?:strong|b|h[1-4]|div|span)>/gi);
-                for (const match of tagMatches) {
-                    const val = match[1];
-                    if (!isYearOrCommonNumber(val) && /verif|code|otp|passcode|login|nomad/i.test(combined)) {
-                        return val;
+            const isEsimMail = /LPA:1\$|SM-DP\+?|activation\s*code/i.test(combined);
+            if (KW.test(combined) && !isEsimMail) {
+                // 4. A number sitting alone on its own line / in its own element (typical OTP layout)
+                for (const line of cleanBody.split('\n')) {
+                    const m = line.trim().match(/^(\d{4,8})$/) || line.trim().match(/^(\d{3})[\s-](\d{3})$/);
+                    if (m && !(m.length === 2 && isYearOrCommonNumber(m[1]) && m[1].length === 4)) return m.slice(1).join('');
+                }
+                // 5. Big bold number in its own tag
+                if (body) {
+                    for (const match of body.matchAll(/<(?:strong|b|h[1-6]|div|span|td|p|a)[^>]*>\s*(\d{4,8})\s*<\/(?:strong|b|h[1-6]|div|span|td|p|a)>/gi)) {
+                        if (!isYearOrCommonNumber(match[1])) return match[1];
                     }
                 }
-            }
-
-            const loose = combined.match(/(?:code|verification|otp|passcode)[^\d]{0,100}\b(\d{4,8})\b/i);
-            if (loose && !isYearOrCommonNumber(loose[1])) return loose[1];
-
-            if (/verif|code|otp|passcode|security/i.test(combined)) {
+                // 6. Loose fallbacks
+                const loose = combined.match(/(?:code|verification|otp|passcode)[^\d]{0,120}\b(\d{4,8})\b/i);
+                if (loose && !isYearOrCommonNumber(loose[1])) return loose[1];
                 const m6 = combined.match(/\b\d{6}\b/);
                 if (m6 && !isYearOrCommonNumber(m6[0])) return m6[0];
+                const m4 = combined.match(/\b\d{4,8}\b/);
+                if (m4 && !isYearOrCommonNumber(m4[0])) return m4[0];
             }
 
             return null;
@@ -3341,7 +3348,9 @@
                 qrImg = imgMatch[1];
             }
 
-            if (lpa || actCode || qrImg) {
+            // A bare image (logo, banner) is not an eSIM: need a real code, or a QR image in an install email
+            const looksLikeInstall = /scan|qr code|install|activate|esim/i.test(stripHtml(content));
+            if (lpa || actCode || (qrImg && looksLikeInstall && !detectVerificationCode('', content))) {
                 return { smdp, activationCode: actCode, lpa, qrImg };
             }
 
@@ -3436,7 +3445,17 @@
         }
 
         function stripHtml(html) {
-            return (html || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+            return (html || '')
+                .replace(/<(style|script|head)[\s\S]*?<\/\1>/gi, ' ')
+                .replace(/<!--[\s\S]*?-->/g, ' ')
+                .replace(/<br\s*\/?>|<\/(p|div|tr|li|h[1-6]|td|th)>/gi, '\n')
+                .replace(/<[^>]*>/g, ' ')
+                .replace(/&nbsp;|&#160;/gi, ' ')
+                .replace(/&amp;/gi, '&')
+                .replace(/&#(\d+);/g, (m, n) => String.fromCharCode(n))
+                .replace(/[ \t\r\f\v]+/g, ' ')
+                .replace(/\s*\n\s*/g, '\n')
+                .trim();
         }
 
         function renderEmails() {

@@ -2784,9 +2784,12 @@
 
             currentAlias = '';
             localStorage.removeItem('nomad_active_alias');
+            currentBaseGmail = '';
+            localStorage.removeItem('nomad_base_gmail');
+            resetCapturedState();
             updateActiveAliasUI('');
-            emails = [];
             renderEmptyStream();
+            document.getElementById('dotVariantsStat').textContent = '-- / --';
             loadAvailableGmails();
         }
 
@@ -2980,15 +2983,37 @@
             calculateDotStats(currentBaseGmail);
         }
 
+        /* Wipe everything tied to the previous email: eSIM/code panel, top bar, live listener, pending copy */
+        function resetCapturedState() {
+            latestEsimData = null;
+            lastCopiedToken = '';
+            currentActiveOtp = '';
+            pendingCopy = null;
+            const bar = document.getElementById('otpAlertBar');
+            if (bar) bar.classList.remove('visible');
+            const head = document.getElementById('inspectorHeadline');
+            if (head) head.textContent = 'Latest Code / eSIM';
+            const panel = document.getElementById('inspectorPanel');
+            if (panel) panel.innerHTML = `
+                <div>
+                    <div class="ins-sub">Waiting for Nomad email...</div>
+                    <div class="code-matrix-val">------</div>
+                </div>
+                <button class="btn-white-circle" id="btnMainInspectorAction" onclick="handleInspectorAction()" title="Show Code">${COPY_SVG}</button>`;
+            if (realtimeChan) { sb.removeChannel(realtimeChan); realtimeChan = null; }
+            emails = [];
+        }
+
         function selectGmail(chosen) {
             if (!chosen) return;
             const switchedFrom = currentBaseGmail && currentBaseGmail !== chosen;
             if (switchedFrom) {
                 currentAlias = '';
                 localStorage.removeItem('nomad_active_alias');
-                emails = [];
+                resetCapturedState();
                 updateActiveAliasUI('');
                 renderEmptyStream();
+                document.getElementById('dotVariantsStat').textContent = '-- / --';
                 showToast(`Switched to ${chosen}`);
             }
             currentBaseGmail = chosen;
@@ -3104,9 +3129,9 @@
                 currentAlias = chosenAlias;
                 localStorage.setItem('nomad_active_alias', chosenAlias);
 
+                resetCapturedState();
                 updateActiveAliasUI(chosenAlias);
                 subscribeToAlias(chosenAlias);
-                emails = [];
                 renderEmptyStream();
 
                 autoCopyText(chosenAlias, 'New email');
@@ -3149,6 +3174,7 @@
             const atIdx = gmail.indexOf('@');
             const user = atIdx !== -1 ? gmail.slice(0, atIdx).replace(/\./g, '') : gmail;
             const totalPossible = calculateMax2DotCount(user);
+            const stillCurrent = () => gmail === currentBaseGmail;
 
             try {
                 const { count } = await sb
@@ -3156,12 +3182,14 @@
                     .select('*', { count: 'exact', head: true })
                     .eq('gmail_account', gmail);
 
+                if (!stillCurrent()) return;
                 const used = count || 0;
                 const remaining = Math.max(0, totalPossible - used);
 
                 document.getElementById('dotVariantsStat').textContent = `${remaining} left`;
                 document.getElementById('aliasCountPill').textContent = `${remaining}`;
             } catch (e) {
+                if (!stillCurrent()) return;
                 document.getElementById('dotVariantsStat').textContent = `${totalPossible} total`;
             }
         }

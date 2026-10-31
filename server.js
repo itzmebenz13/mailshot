@@ -1251,9 +1251,10 @@ app.get('/api/admin/gmail-connect-url', requireAdminSecret, async function (req,
       return res.status(400).json({ ok: false, error: 'Provide a valid Gmail address as ?account=' });
     }
     // Embed admin secret in the login URL so the callback is also protected
-    const baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN
-      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-      : 'http://localhost:3000';
+    const baseUrl = process.env.RENDER_EXTERNAL_URL
+      || (process.env.RENDER_EXTERNAL_HOSTNAME ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}` : null)
+      || (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null)
+      || 'https://mailshot-0y8g.onrender.com';
     const loginUrl = `${baseUrl}/auth/login?account=${encodeURIComponent(accountEmail)}&secret=${encodeURIComponent(process.env.ADMIN_SECRET || '')}`;
     return res.json({ ok: true, url: loginUrl, account: accountEmail });
   } catch (e) {

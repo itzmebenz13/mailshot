@@ -1289,20 +1289,20 @@
                         </div>
                         <div style="max-height:240px;overflow-y:auto;">
                             <table class="adm-table-wrap">
---------------------------------------------------------<thead>
---------------------------------------------------------<tr>
---------------------------------------------------------<th>Gmail</th>
---------------------------------------------------------<th>Status</th>
---------------------------------------------------------<th>Used</th>
---------------------------------------------------------<th>Today</th>
---------------------------------------------------------<th>Action</th>
---------------------------------------------------------</tr>
---------------------------------------------------------</thead>
---------------------------------------------------------<tbody id="admAccountsTbody">
---------------------------------------------------------<tr>
---------------------------------------------------------<td colspan="5" style="text-align:center;">Loading...</td>
---------------------------------------------------------</tr>
---------------------------------------------------------</tbody>
+<thead>
+<tr>
+<th>Gmail</th>
+<th>Status</th>
+<th>Used</th>
+<th>Today</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="admAccountsTbody">
+<tr>
+<td colspan="5" style="text-align:center;">Loading...</td>
+</tr>
+</tbody>
                             </table>
                         </div>
                     </div>
@@ -1317,9 +1317,9 @@
                         <div style="margin-bottom:12px;">
                             <label style="font-size:0.75rem;color:#FDA4AF;display:block;margin-bottom:4px;font-weight:700;">Select Target Server:</label>
                             <select id="admAddServerSelect" class="adm-text-input" style="padding:8px 12px;">
---------------------------------------------------------<option value="1">Server 1 (Primary)</option>
---------------------------------------------------------<option value="2">Server 2 (Friend)</option>
---------------------------------------------------------<option value="3">Server 3 (Backup)</option>
+<option value="1">Server 1 (Primary)</option>
+<option value="2">Server 2 (Friend)</option>
+<option value="3">Server 3 (Backup)</option>
                             </select>
                         </div>
 
@@ -1327,7 +1327,7 @@
                             placeholder="example@gmail.com (optional)" style="margin-bottom:10px;" />
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
                             <input type="checkbox" id="admNewGmailVisible" checked
---------------------------------------------------------style="width:15px;height:15px;accent-color:var(--crimson);" />
+style="width:15px;height:15px;accent-color:var(--crimson);" />
                             <label for="admNewGmailVisible" style="font-size:0.8rem;color:var(--text-secondary);">Show in account dropdown</label>
                         </div>
                         <button class="btn-crimson-pill" style="width:100%;" onclick="admAddGmailAccount()">
@@ -1342,16 +1342,16 @@
                         </p>
                         <div style="display:flex;flex-direction:column;gap:12px;">
                             <div>
---------------------------------------------------------<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 1 (Your Server):</label>
---------------------------------------------------------<input type="url" id="admServer1UrlInput" class="adm-text-input" placeholder="https://mailshot-0y8g.onrender.com" />
+<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 1 (Your Server):</label>
+<input type="url" id="admServer1UrlInput" class="adm-text-input" placeholder="https://mailshot-0y8g.onrender.com" />
                             </div>
                             <div>
---------------------------------------------------------<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 2 (Friend's Server):</label>
---------------------------------------------------------<input type="url" id="admServer2UrlInput" class="adm-text-input" placeholder="https://friend-mailshot.onrender.com" />
+<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 2 (Friend's Server):</label>
+<input type="url" id="admServer2UrlInput" class="adm-text-input" placeholder="https://friend-mailshot.onrender.com" />
                             </div>
                             <div>
---------------------------------------------------------<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 3 (Extra / Backup Server):</label>
---------------------------------------------------------<input type="url" id="admServer3UrlInput" class="adm-text-input" placeholder="https://extra-mailshot.onrender.com" />
+<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 3 (Extra / Backup Server):</label>
+<input type="url" id="admServer3UrlInput" class="adm-text-input" placeholder="https://extra-mailshot.onrender.com" />
                             </div>
                             <button class="btn-crimson-pill" style="width:100%;margin-top:4px;" onclick="saveServerUrls()">Save All Server URLs</button>
                         </div>
@@ -2000,8 +2000,8 @@
                         <div class="email-icon-box">N</div>
                         <div class="email-body-col">
                             <div class="email-meta-line">
---------------------------------------------------------<span class="email-sender-title">${escHtml(e.sender)}</span>
---------------------------------------------------------<span class="email-timestamp">${escHtml(e.time)}</span>
+<span class="email-sender-title">${escHtml(e.sender)}</span>
+<span class="email-timestamp">${escHtml(e.time)}</span>
                             </div>
                             <div class="email-subject-text">${escHtml(e.subject)}</div>
                             <div class="email-tags-row">${chipHtml}</div>
@@ -2324,8 +2324,8 @@
                             <td>${s.used_variants} / ${s.total_variants}</td>
                             <td>${s.used_today ? '<span style="color:#FDA4AF;">Used</span>' : '<span style="color:#6EE7B7;">1/1</span>'}</td>
                             <td>
---------------------------------------------------------<button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-mini-tool" style="margin-right:4px;">Reset</button>
---------------------------------------------------------<button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-mini-tool" style="color:#FDA4AF;">Del</button>
+<button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-mini-tool" style="margin-right:4px;">Reset</button>
+<button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-mini-tool" style="color:#FDA4AF;">Del</button>
                             </td>
                         </tr>
                     `;

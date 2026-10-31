@@ -1517,7 +1517,7 @@
                 <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">Enter authorized admin
                     secret to manage connected Gmails:</p>
                 <input type="password" id="adminSecretInput" class="adm-input"
-                    placeholder="Enter admin password (e.g. JM-2026)"
+                    placeholder="Enter admin password (e.g. SM-2026)"
                     onkeydown="if(event.key==='Enter')authenticateAdmin()" />
                 <button class="btn-coral" style="width: 100%; justify-content: center;"
                     onclick="authenticateAdmin()">Authenticate</button>
@@ -1615,7 +1615,7 @@
         let currentAlias = localStorage.getItem('nomad_active_alias') || '';
         let currentBaseGmail = localStorage.getItem('nomad_base_gmail') || '';
         let esimTargetMode = localStorage.getItem('nomad_esim_target') || 'android'; // 'android', 'ios', 'windows', 'qr'
-        let adminSecret = localStorage.getItem('nomad_admin_secret') || 'JM-2026';
+        let adminSecret = localStorage.getItem('nomad_admin_secret') || 'SM-2026';
         let isAdminAuth = false;
 
         let emails = [];
@@ -2316,7 +2316,7 @@
 
         function authenticateAdmin() {
             const val = document.getElementById('adminSecretInput').value.trim();
-            if (val === adminSecret || val === 'JM-2026') {
+            if (val === adminSecret || val === 'SM-2026') {
                 isAdminAuth = true;
                 localStorage.setItem('nomad_admin_secret', val);
                 showAdminContent();

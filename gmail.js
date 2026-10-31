@@ -160,11 +160,12 @@ async function loadAllAccounts() {
  * Generate an OAuth URL for a specific Gmail account.
  * Uses login_hint so Google pre-selects that account.
  */
-function getAuthUrl(accountEmail, returnTo) {
+function getAuthUrl(accountEmail, returnTo, serverSlot = 1) {
   const tempClient = new google.auth.OAuth2(client_id, client_secret, redirectUri);
   const statePayload = {
     a: accountEmail ? accountEmail.trim().toLowerCase() : '',
-    r: returnTo || 'https://itzmebenz13.github.io/mailshot/'
+    r: returnTo || 'https://itzmebenz13.github.io/mailshot/',
+    s: parseInt(serverSlot) || 1
   };
   const params = {
     access_type: 'offline',
@@ -187,10 +188,12 @@ async function saveToken(code, stateStr) {
 
   let accountEmail = '';
   let userId = null;
+  let serverSlot = 1;
   try {
     const parsed = JSON.parse(Buffer.from(stateStr, 'base64').toString('utf8'));
     accountEmail = parsed.a || '';
     userId = parsed.u || null;
+    if (parsed.s) serverSlot = parseInt(parsed.s) || 1;
   } catch (e) {
     accountEmail = stateStr; // fallback for old format
   }
@@ -217,7 +220,7 @@ async function saveToken(code, stateStr) {
   // Upsert into Supabase
   const upsertData = {
     email,
-    tokens,
+    tokens: Object.assign({}, tokens, { server_slot: serverSlot }),
     visible: true
   };
   if (userId) upsertData.user_id = userId;
@@ -233,7 +236,7 @@ async function saveToken(code, stateStr) {
   client.setCredentials(tokens);
   client.on('tokens', async (newTokens) => {
     try {
-      const merged = Object.assign({}, client.credentials, newTokens);
+      const merged = Object.assign({}, client.credentials, newTokens, { server_slot: serverSlot });
       client.setCredentials(merged);
       await _sb.from('gmail_accounts').upsert(
         { email, tokens: merged },

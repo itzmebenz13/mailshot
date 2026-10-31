@@ -2847,26 +2847,63 @@
             return `<div class="acct-empty"><strong>${escHtml(title)}</strong>${escHtml(sub || '')}</div>`;
         }
 
+        function loadAcctCache() {
+            try { return JSON.parse(localStorage.getItem('nomad_gmail_cache') || '[]'); } catch (e) { return []; }
+        }
+
+        async function fetchGmailAccounts() {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 25000);
+            try {
+                const r = await fetch(BACKEND_URL + '/api/public/gmail-accounts', { signal: ctrl.signal });
+                const data = await r.json();
+                return (data && data.ok && data.accounts) ? data.accounts : [];
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
         async function loadAvailableGmails() {
             const list = document.getElementById('acctList');
             list.innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
             setAcctHead('Loading...', '');
             document.getElementById('acctFoot').innerHTML = '';
-            try {
-                const r = await fetch(BACKEND_URL + '/api/public/gmail-accounts');
-                const data = await r.json();
-                const allAccounts = (data.ok && data.accounts) ? data.accounts : [];
-                if (!allAccounts.length) {
-                    list.innerHTML = acctEmptyHtml('No Gmails added', 'Add one from Admin Settings.');
-                    setAcctHead('No Gmails added', '');
+
+            let accounts = null;
+            for (let attempt = 1; attempt <= 3 && accounts === null; attempt++) {
+                try {
+                    accounts = await fetchGmailAccounts();
+                } catch (e) {
+                    if (attempt < 3) {
+                        setAcctHead('Waking up server...', `Attempt ${attempt + 1} of 3`);
+                        await new Promise(res => setTimeout(res, 2000));
+                    }
+                }
+            }
+
+            if (accounts === null) {
+                const cached = loadAcctCache();
+                if (cached.length) {
+                    gmailCache = cached;
+                    showToast('Server unreachable. Showing saved accounts');
+                    renderGmailOptions();
                     return;
                 }
-                gmailCache = allAccounts;
-                renderGmailOptions();
-            } catch (e) {
-                list.innerHTML = acctEmptyHtml('Connection error', 'Could not reach the server. Tap refresh to retry.');
-                setAcctHead('Connection error', '');
+                list.innerHTML = acctEmptyHtml('Could not reach the server', 'It may be waking up. Please try again.') +
+                    '<div style="text-align:center;padding-bottom:12px;"><button type="button" class="btn-copy-small" onclick="loadAvailableGmails()">Retry</button></div>';
+                setAcctHead('Connection error', 'Tap Retry below');
+                return;
             }
+
+            if (!accounts.length) {
+                list.innerHTML = acctEmptyHtml('No Gmails added', 'Add one from Admin Settings.');
+                setAcctHead('No Gmails added', '');
+                return;
+            }
+
+            try { localStorage.setItem('nomad_gmail_cache', JSON.stringify(accounts)); } catch (e) { }
+            gmailCache = accounts;
+            renderGmailOptions();
         }
 
         /* Numbers are fixed per account (position in this server's list).

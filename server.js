@@ -26,10 +26,9 @@ app.use(function (req, res, next) {
   next();
 });
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+const supabaseUrl = process.env.SUPABASE_URL || 'https://pqxqsvkliumopyotloke.supabase.co';
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || 'placeholder_key_set_in_render_env';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ════════════════════════════════════════════════════════════
 // ── RATE LIMITING CONFIG ──-

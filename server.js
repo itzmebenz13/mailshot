@@ -289,47 +289,184 @@ function isInboxExpired(alias) {
 // ════════════════════════════════════════════════════════════
 // ── AUTH ──
 // ════════════════════════════════════════════════════════════
-// ── AUTH — multi-account: ?account=user@gmail.com ──
+// ── AUTH — initiate Google OAuth: ?account=user@gmail.com&return_to=... ──
 app.get('/auth/login', async (req, res) => {
-  const token = req.query.token;
-  const accountEmail = (req.query.account || '').trim().toLowerCase() || undefined;
-
-  // We require the user to be signed into Supabase
-  if (!token) {
-    return res.status(401).send('Unauthorized — missing user token');
+  try {
+    const accountEmail = (req.query.account || '').trim().toLowerCase() || undefined;
+    const returnTo = req.query.return_to || 'https://itzmebenz13.github.io/mailshot/';
+    const authUrl = getAuthUrl(accountEmail, returnTo);
+    return res.redirect(authUrl);
+  } catch (err) {
+    console.error('auth/login error:', err.message);
+    return res.status(500).send('Error generating Google sign-in URL: ' + err.message);
   }
-
-  // Verify the Supabase token
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) {
-    return res.status(401).send('Invalid token or unauthorized');
-  }
-
-  res.redirect(getAuthUrl(accountEmail, user.id));
 });
 
 app.get('/auth/callback', async (req, res) => {
   try {
+    const code = req.query.code;
     const stateStr = req.query.state || '';
+    if (!code) {
+      return res.status(400).send('Missing authorization code from Google.');
+    }
 
-    // Check if user is present in state
-    let userId = null;
+    let returnTo = 'https://itzmebenz13.github.io/mailshot/';
     try {
       const parsed = JSON.parse(Buffer.from(stateStr, 'base64').toString('utf8'));
-      userId = parsed.u || null;
+      if (parsed.r) returnTo = parsed.r;
     } catch (e) { }
 
-    const savedEmail = await saveToken(req.query.code, stateStr);
-    await registerWatch(savedEmail);
+    const savedEmail = await saveToken(code, stateStr);
+    try {
+      await registerWatch(savedEmail);
+      console.log(`[gmail] Watch registered for ${savedEmail}`);
+    } catch (watchErr) {
+      console.warn(`[gmail] registerWatch warning for ${savedEmail}:`, watchErr.message);
+    }
+
     res.send(`
-      <html><body style="font-family:sans-serif;text-align:center;padding:60px;">
-        <h2 style="color:#22c55e">✓ ${savedEmail} connected!</h2>
-        <p>Gmail account added successfully. You can close this tab.</p>
-      </body></html>
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <title>Google Account Linked — Nomad Mailshot</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+          }
+          .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 24px;
+            padding: 40px 32px;
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+          }
+          .check-icon {
+            width: 68px;
+            height: 68px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 2px solid #22c55e;
+            color: #22c55e;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+          }
+          h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #f8fafc;
+            margin-bottom: 8px;
+          }
+          .account-pill {
+            display: inline-block;
+            background: #0f172a;
+            border: 1px solid #38bdf8;
+            color: #38bdf8;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin: 12px 0 16px;
+            word-break: break-all;
+          }
+          p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 28px;
+          }
+          .btn-return {
+            display: block;
+            width: 100%;
+            background: #ff5733;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            transition: background 0.2s, transform 0.1s;
+          }
+          .btn-return:hover {
+            background: #e04825;
+            transform: translateY(-1px);
+          }
+          .countdown {
+            margin-top: 14px;
+            font-size: 0.8rem;
+            color: #64748b;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="check-icon">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <h1>Google Account Linked!</h1>
+          <div class="account-pill">${savedEmail}</div>
+          <p>Your Gmail account is authorized and ready to stream Nomad eSIM verification codes and QR codes automatically.</p>
+          <a href="${returnTo}" class="btn-return" id="returnLink">Return to Nomad Mailshot</a>
+          <div class="countdown" id="countText">Redirecting in 3 seconds...</div>
+        </div>
+        <script>
+          let seconds = 3;
+          const countEl = document.getElementById('countText');
+          const targetUrl = ${JSON.stringify(returnTo)};
+          const timer = setInterval(() => {
+            seconds--;
+            if (countEl) countEl.textContent = 'Redirecting in ' + seconds + ' seconds...';
+            if (seconds <= 0) {
+              clearInterval(timer);
+              window.location.href = targetUrl;
+            }
+          }, 1000);
+        </script>
+      </body>
+      </html>
     `);
   } catch (e) {
     console.error('auth/callback error:', e.message);
-    res.status(500).send('Authentication failed: ' + e.message);
+    res.status(500).send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <title>Linking Failed — Nomad Mailshot</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0f172a; color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; margin: 0; }
+          .card { background: #1e293b; border: 1px solid #ef4444; border-radius: 20px; padding: 36px 28px; max-width: 440px; text-align: center; }
+          h2 { color: #ef4444; margin-bottom: 12px; }
+          p { color: #94a3b8; margin-bottom: 24px; line-height: 1.5; font-size: 0.95rem; }
+          a { display: inline-block; background: #ff5733; color: white; text-decoration: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h2>Authentication Failed</h2>
+          <p>${e.message}</p>
+          <a href="https://itzmebenz13.github.io/mailshot/">Return to Mailshot</a>
+        </div>
+      </body>
+      </html>
+    `);
   }
 });
 
@@ -1248,17 +1385,10 @@ app.get('/api/admin/gmail-accounts', requireAdminSecret, async function (req, re
  */
 app.get('/api/admin/gmail-connect-url', requireAdminSecret, async function (req, res) {
   try {
-    const accountEmail = (req.query.account || '').trim().toLowerCase();
-    if (!accountEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(accountEmail)) {
-      return res.status(400).json({ ok: false, error: 'Provide a valid Gmail address as ?account=' });
-    }
-    // Embed admin secret in the login URL so the callback is also protected
-    const baseUrl = process.env.RENDER_EXTERNAL_URL
-      || (process.env.RENDER_EXTERNAL_HOSTNAME ? `https://${process.env.RENDER_EXTERNAL_HOSTNAME}` : null)
-      || (process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null)
-      || 'https://mailshot-0y8g.onrender.com';
-    const loginUrl = `${baseUrl}/auth/login?account=${encodeURIComponent(accountEmail)}&secret=${encodeURIComponent(process.env.ADMIN_SECRET || '')}`;
-    return res.json({ ok: true, url: loginUrl, account: accountEmail });
+    const accountEmail = (req.query.account || '').trim().toLowerCase() || undefined;
+    const returnTo = req.query.return_to || 'https://itzmebenz13.github.io/mailshot/';
+    const authUrl = getAuthUrl(accountEmail, returnTo);
+    return res.json({ ok: true, url: authUrl, account: accountEmail });
   } catch (e) {
     console.error('admin/gmail-connect-url error:', e.message);
     return res.status(500).json({ ok: false, error: e.message });
@@ -1559,26 +1689,26 @@ app.post('/api/user/gmail-accounts/remove', async function (req, res) {
  */
 app.get('/api/public/gmail-accounts', async function (req, res) {
   try {
-    // Try selecting with the visible column; if column is missing, return all
     let visibleAccounts = [];
     const { data, error } = await supabase
       .from('gmail_accounts')
-      .select('email, visible, watch_expiry');
+      .select('email, visible, watch_expiry, tokens');
 
     if (error) {
-      // visible column probably doesn't exist yet — return all accounts as a fallback
-      const fallback = await supabase.from('gmail_accounts').select('email, watch_expiry');
-      visibleAccounts = (fallback.data || []);
+      const fallback = await supabase.from('gmail_accounts').select('email, visible, watch_expiry');
+      visibleAccounts = ((fallback.data || []).filter(a => a.visible !== false));
     } else {
-      // Only return accounts where visible is not explicitly false
       visibleAccounts = (data || []).filter(a => a.visible !== false);
     }
 
-    // Only surface accounts with an active watch (can actually receive email)
-    const now = new Date();
-    const active = visibleAccounts.filter(a => a.watch_expiry && new Date(a.watch_expiry) > now);
+    // Surface accounts that have active tokens (connected) or active watch
+    const active = visibleAccounts.filter(a => {
+      const hasTokens = a.tokens && (a.tokens.access_token || a.tokens.refresh_token);
+      return hasTokens || (a.watch_expiry && new Date(a.watch_expiry) > new Date());
+    });
 
-    return res.json({ ok: true, accounts: active.map(a => ({ email: a.email })) });
+    const result = active.length > 0 ? active : visibleAccounts;
+    return res.json({ ok: true, accounts: result.map(a => ({ email: a.email })) });
   } catch (e) {
     console.error('/api/public/gmail-accounts error:', e.message);
     return res.status(500).json({ ok: false, error: e.message });
@@ -1764,7 +1894,7 @@ app.get('/api/admin/gmail-accounts/stats', requireAdminSecret, async function (r
   try {
     const { data: accounts, error: accErr } = await supabase
       .from('gmail_accounts')
-      .select('email, visible, watch_expiry, added_at');
+      .select('email, visible, watch_expiry, added_at, tokens');
 
     if (accErr) return res.status(500).json({ ok: false, error: accErr.message });
 
@@ -1783,9 +1913,12 @@ app.get('/api/admin/gmail-accounts/stats', requireAdminSecret, async function (r
       const usedCount = accAliases.length;
       const usedToday = accAliases.some(r => r.created_at && new Date(r.created_at).toISOString().slice(0, 10) === todayStr);
 
+      const hasTokens = Boolean(acc.tokens && (acc.tokens.access_token || acc.tokens.refresh_token));
+
       return {
         email: acc.email,
         visible: acc.visible !== false,
+        authenticated: hasTokens,
         watch_active: acc.watch_expiry ? new Date(acc.watch_expiry) > new Date() : false,
         total_variants: totalVariants,
         used_variants: usedCount,

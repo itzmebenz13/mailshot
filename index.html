@@ -1115,7 +1115,7 @@
                 <!-- Homepage Server 1-3 Selector -->
                 <div class="server-select-wrap" title="Switch Server Profile">
                     <select id="homeServerSelect" class="server-select" onchange="onSwitchServer(this.value)">
-                        <option value="1">Server 1</option>
+                        <option value="1">&#128274; Server 1</option>
                         <option value="2">Server 2</option>
                         <option value="3">Server 3</option>
                     </select>
@@ -1278,13 +1278,13 @@
                     <div class="adm-tab-row">
                         <button class="adm-tab-btn active" id="admTabAccounts" onclick="switchAdminTab('accounts')">Accounts</button>
                         <button class="adm-tab-btn" id="admTabAdd" onclick="switchAdminTab('add')">+ Add Gmail</button>
-                        <button class="adm-tab-btn" id="admTabConfig" onclick="switchAdminTab('config')">Server URLs (1-3)</button>
+                        <button class="adm-tab-btn" id="admTabConfig" onclick="switchAdminTab('config')">Servers (1-3)</button>
                     </div>
 
                     <!-- TAB 1: ACCOUNTS LIST -->
                     <div id="admSectionAccounts">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                            <span style="font-size:0.76rem;color:var(--text-muted);font-weight:700;">Connected Gmail Accounts (<span id="admCurrentServerLabel">Server 1</span>)</span>
+                            <span style="font-size:0.76rem;color:var(--text-muted);font-weight:700;">Connected Gmail Accounts (<span id="admCurrentServerLabel">All Slots</span>)</span>
                             <button class="btn-mini-tool" onclick="loadAdminStats()">Refresh</button>
                         </div>
                         <div style="max-height:240px;overflow-y:auto;">
@@ -1292,6 +1292,7 @@
 <thead>
 <tr>
 <th>Gmail</th>
+<th>Server Slot</th>
 <th>Status</th>
 <th>Used</th>
 <th>Today</th>
@@ -1300,7 +1301,7 @@
 </thead>
 <tbody id="admAccountsTbody">
 <tr>
-<td colspan="5" style="text-align:center;">Loading...</td>
+<td colspan="6" style="text-align:center;">Loading...</td>
 </tr>
 </tbody>
                             </table>
@@ -1315,11 +1316,11 @@
                         
                         <!-- Target Server Selector -->
                         <div style="margin-bottom:12px;">
-                            <label style="font-size:0.75rem;color:#FDA4AF;display:block;margin-bottom:4px;font-weight:700;">Select Target Server:</label>
+                            <label style="font-size:0.75rem;color:#FDA4AF;display:block;margin-bottom:4px;font-weight:700;">Assign to Server Slot:</label>
                             <select id="admAddServerSelect" class="adm-text-input" style="padding:8px 12px;">
-<option value="1">Server 1 (Primary)</option>
-<option value="2">Server 2 (Friend)</option>
-<option value="3">Server 3 (Backup)</option>
+<option value="1">&#128274; Server 1 (Your Private Slot)</option>
+<option value="2">Server 2 (Friend's Slot)</option>
+<option value="3">Server 3 (Backup Slot)</option>
                             </select>
                         </div>
 
@@ -1338,24 +1339,61 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
                     <!-- TAB 3: SERVER 1-3 CONFIGURATION -->
                     <div id="admSectionConfig" style="display:none;">
                         <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:12px;">
-                            Configure backend server URLs for yourself and your friends:
+                            All profiles connect through your primary Render server partition. Manage slots and PIN lock below:
                         </p>
-                        <div style="display:flex;flex-direction:column;gap:12px;">
-                            <div>
-<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 1 (Your Server):</label>
-<input type="url" id="admServer1UrlInput" class="adm-text-input" placeholder="https://mailshot-0y8g.onrender.com" />
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                                    <span style="font-size:0.82rem;color:#FFF;font-weight:700;">&#128274; Server 1: Private Slot</span>
+                                    <span style="font-size:0.7rem;background:rgba(225,29,72,0.25);color:#FDA4AF;padding:2px 8px;border-radius:6px;font-weight:700;">PIN: superserver888</span>
+                                </div>
+                                <p style="font-size:0.72rem;color:var(--text-muted);margin-bottom:8px;">Protected by passcode. Fresh visitors default to Server 2 and cannot view or use Server 1 without the PIN.</p>
+                                <button class="btn-mini-tool" style="width:100%;padding:6px;" onclick="lockServer1()">Re-Lock Server 1 in This Browser</button>
                             </div>
-                            <div>
-<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 2 (Friend's Server):</label>
-<input type="url" id="admServer2UrlInput" class="adm-text-input" placeholder="https://friend-mailshot.onrender.com" />
+
+                            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px;">
+                                <div style="font-size:0.82rem;color:#6EE7B7;font-weight:700;margin-bottom:4px;">Server 2: Friend's Slot</div>
+                                <p style="font-size:0.72rem;color:var(--text-muted);">Open slot for your friend. Accounts assigned to Server 2 appear here without a PIN requirement.</p>
                             </div>
-                            <div>
-<label style="font-size:0.74rem;color:#FDA4AF;font-weight:700;display:block;margin-bottom:4px;">Server 3 (Extra / Backup Server):</label>
-<input type="url" id="admServer3UrlInput" class="adm-text-input" placeholder="https://extra-mailshot.onrender.com" />
+
+                            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px;">
+                                <div style="font-size:0.82rem;color:#93C5FD;font-weight:700;margin-bottom:4px;">Server 3: Extra / Backup Slot</div>
+                                <p style="font-size:0.72rem;color:var(--text-muted);">Additional partition for backup Gmail accounts.</p>
                             </div>
-                            <button class="btn-crimson-pill" style="width:100%;margin-top:4px;" onclick="saveServerUrls()">Save All Server URLs</button>
+
+                            <div>
+                                <label style="font-size:0.74rem;color:var(--text-muted);display:block;margin-bottom:4px;">Backend Render URL:</label>
+                                <input type="url" id="admBackendUrlInput" class="adm-text-input" placeholder="https://mailshot-0y8g.onrender.com" />
+                                <button class="btn-crimson-pill" style="width:100%;margin-top:8px;" onclick="saveBackendUrl()">Save Backend URL</button>
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SERVER 1 PIN MODAL -->
+    <div class="modal-backdrop" id="server1PinModalOverlay">
+        <div class="modal-box" style="max-width:340px;text-align:center;">
+            <div class="modal-header-row" style="justify-content:center;position:relative;">
+                <h2 style="font-size:0.96rem;color:#FFF;display:flex;align-items:center;gap:6px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FDA4AF" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Server 1 is Protected
+                </h2>
+                <button class="modal-close" onclick="cancelServer1Pin()" style="position:absolute;right:14px;top:14px;">&times;</button>
+            </div>
+            <div class="modal-inner" style="align-items:center;padding:16px;">
+                <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.4;">
+                    Server 1 is restricted to administrator access. Enter passcode to unlock:
+                </p>
+                <input type="password" id="server1PinInput" class="adm-text-input" placeholder="Enter Server 1 Passcode"
+                    style="text-align:center;font-size:1rem;letter-spacing:2px;margin-bottom:6px;"
+                    onkeydown="if(event.key==='Enter') verifyServer1Pin()" />
+                <div id="server1PinError" style="font-size:0.75rem;color:#FDA4AF;margin-bottom:10px;min-height:18px;"></div>
+                <div style="display:flex;gap:8px;width:100%;">
+                    <button class="btn-mini-tool" style="flex:1;padding:10px;" onclick="cancelServer1Pin()">Cancel</button>
+                    <button class="btn-crimson-pill" style="flex:1;padding:10px;" onclick="verifyServer1Pin()">Unlock</button>
                 </div>
             </div>
         </div>
@@ -1405,18 +1443,52 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
     -------------------------------------------------------- -->
     <script>
         /* --------------------------------------------------------
-           SERVER 1-3 PROFILE ARCHITECTURE
+           SERVER 1-3 PROFILE ARCHITECTURE & PASSCODE LOCK
         -------------------------------------------------------- */
-        let activeServerId = localStorage.getItem('nomad_active_server_id') || '1';
+        const SERVER_1_PASSCODE = 'superserver888';
+        const DEFAULT_BACKEND_URL = 'https://mailshot-0y8g.onrender.com';
 
-        function getServerUrl(id) {
-            if (id === '2') return localStorage.getItem('nomad_server_2_url') || '';
-            if (id === '3') return localStorage.getItem('nomad_server_3_url') || '';
-            // Server 1 fallback
-            return localStorage.getItem('nomad_server_1_url') || localStorage.getItem('nomad_backend_url') || 'https://mailshot-0y8g.onrender.com';
+        function isServer1Unlocked() {
+            return localStorage.getItem('nomad_server_1_unlocked') === 'true';
         }
 
-        let BACKEND_URL = getServerUrl(activeServerId);
+        // Active server slot (1, 2, or 3). If 1 isn't unlocked, default fresh users to 2.
+        let activeServerId = localStorage.getItem('nomad_active_server_id') || '2';
+        if (activeServerId === '1' && !isServer1Unlocked()) {
+            activeServerId = '2';
+        }
+
+        let BACKEND_URL = localStorage.getItem('nomad_backend_url') || DEFAULT_BACKEND_URL;
+
+        function getLocalAccountSlotMap() {
+            try {
+                return JSON.parse(localStorage.getItem('nomad_account_slots') || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function setLocalAccountSlot(email, slot) {
+            if (!email) return;
+            const map = getLocalAccountSlotMap();
+            map[email.toLowerCase()] = String(slot);
+            localStorage.setItem('nomad_account_slots', JSON.stringify(map));
+        }
+
+        function getAccountServerSlot(accountObjOrEmail) {
+            if (!accountObjOrEmail) return '1';
+            const email = (typeof accountObjOrEmail === 'string' ? accountObjOrEmail : (accountObjOrEmail.email || '')).toLowerCase();
+            if (typeof accountObjOrEmail === 'object' && accountObjOrEmail.server_slot) {
+                const s = String(accountObjOrEmail.server_slot);
+                setLocalAccountSlot(email, s);
+                return s;
+            }
+            const localMap = getLocalAccountSlotMap();
+            if (localMap[email]) {
+                return String(localMap[email]);
+            }
+            return '1';
+        }
 
         const SUPABASE_URL = 'https://tlaazrkfluhrnpywjujr.supabase.co';
         const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsYWF6cmtmbHVocm5weXdqdWpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM0MjgzMDMsImV4cCI6MjEwOTAwNDMwM30.sK1q21ZY98xTuFZn8Etuxa2TJsJcSoG1KCPL9ktEDMI';
@@ -1439,7 +1511,6 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
            INITIALIZATION
         -------------------------------------------------------- */
         window.addEventListener('DOMContentLoaded', async () => {
-            // Restore server selector
             const homeSel = document.getElementById('homeServerSelect');
             if (homeSel) homeSel.value = activeServerId;
 
@@ -1457,25 +1528,29 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
             updateDailyLimitUI();
         });
 
-        /* Switch active server from homepage */
+        /* Switch active server partition */
         function onSwitchServer(newId) {
+            if (newId === '1' && !isServer1Unlocked()) {
+                promptServer1Pin();
+                return;
+            }
+            applyServerSelection(newId);
+        }
+
+        function applyServerSelection(newId) {
             activeServerId = newId;
             localStorage.setItem('nomad_active_server_id', newId);
 
-            const url = getServerUrl(newId);
-            if (!url) {
-                showToast(`Server ${newId} has no URL set. Configure in Admin Settings.`);
-                BACKEND_URL = '';
-            } else {
-                BACKEND_URL = url;
-                showToast(`Switched to Server ${newId}`);
-            }
+            const homeSel = document.getElementById('homeServerSelect');
+            if (homeSel) homeSel.value = newId;
 
             const admServerLabel = document.getElementById('admCurrentServerLabel');
             if (admServerLabel) admServerLabel.textContent = `Server ${newId}`;
 
             const admSel = document.getElementById('admAddServerSelect');
             if (admSel) admSel.value = newId;
+
+            showToast(`Switched to Server ${newId}`);
 
             // Clear current alias session when switching servers
             currentAlias = '';
@@ -1486,22 +1561,65 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
             loadAvailableGmails();
         }
 
+        function promptServer1Pin() {
+            document.getElementById('server1PinInput').value = '';
+            document.getElementById('server1PinError').textContent = '';
+            document.getElementById('server1PinModalOverlay').classList.add('open');
+            setTimeout(() => {
+                const inp = document.getElementById('server1PinInput');
+                if (inp) inp.focus();
+            }, 150);
+        }
+
+        function verifyServer1Pin() {
+            const inp = document.getElementById('server1PinInput');
+            const val = (inp ? inp.value : '').trim();
+            if (val === SERVER_1_PASSCODE) {
+                localStorage.setItem('nomad_server_1_unlocked', 'true');
+                document.getElementById('server1PinModalOverlay').classList.remove('open');
+                showToast('Server 1 Unlocked');
+                applyServerSelection('1');
+            } else {
+                document.getElementById('server1PinError').textContent = 'Incorrect passcode';
+                if (inp) inp.select();
+            }
+        }
+
+        function cancelServer1Pin() {
+            document.getElementById('server1PinModalOverlay').classList.remove('open');
+            const homeSel = document.getElementById('homeServerSelect');
+            if (homeSel) homeSel.value = activeServerId;
+        }
+
+        function lockServer1() {
+            localStorage.removeItem('nomad_server_1_unlocked');
+            showToast('Server 1 locked');
+            if (activeServerId === '1') {
+                applyServerSelection('2');
+            }
+        }
+
         async function loadAvailableGmails() {
             const select = document.getElementById('baseGmailSelect');
             select.innerHTML = '<option value="">Loading...</option>';
 
-            if (!BACKEND_URL) {
-                select.innerHTML = '<option value="">Server URL not set</option>';
-                return;
-            }
-
             try {
                 const r = await fetch(BACKEND_URL + '/api/public/gmail-accounts');
                 const data = await r.json();
-                const accounts = (data.ok && data.accounts) ? data.accounts : [];
+                const allAccounts = (data.ok && data.accounts) ? data.accounts : [];
+
+                if (!allAccounts.length) {
+                    select.innerHTML = '<option value="">No Gmails added</option>';
+                    return;
+                }
+
+                // Filter accounts to the active server partition (1, 2, or 3)
+                const accounts = allAccounts.filter(a => getAccountServerSlot(a) === String(activeServerId));
 
                 if (!accounts.length) {
-                    select.innerHTML = '<option value="">No Gmails added</option>';
+                    select.innerHTML = `<option value="">No Gmails in Server ${activeServerId}</option>`;
+                    currentBaseGmail = '';
+                    updateDailyLimitUI();
                     return;
                 }
 
@@ -1518,8 +1636,12 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
                 if (!currentBaseGmail && accounts.length > 0) {
                     select.value = accounts[0].email;
                     onSelectBaseGmail();
-                } else if (currentBaseGmail) {
+                } else if (currentBaseGmail && accounts.some(a => a.email === currentBaseGmail)) {
+                    select.value = currentBaseGmail;
                     calculateDotStats(currentBaseGmail);
+                } else if (accounts.length > 0) {
+                    select.value = accounts[0].email;
+                    onSelectBaseGmail();
                 }
             } catch (e) {
                 select.innerHTML = '<option value="">Connection error</option>';
@@ -2243,20 +2365,14 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
             document.getElementById('adminAuthLock').style.display = 'none';
             document.getElementById('adminPanelContent').style.display = 'block';
 
-            // Populate all 3 server inputs
-            const s1 = document.getElementById('admServer1UrlInput');
-            const s2 = document.getElementById('admServer2UrlInput');
-            const s3 = document.getElementById('admServer3UrlInput');
-
-            if (s1) s1.value = getServerUrl('1');
-            if (s2) s2.value = getServerUrl('2');
-            if (s3) s3.value = getServerUrl('3');
+            const urlInput = document.getElementById('admBackendUrlInput');
+            if (urlInput) urlInput.value = BACKEND_URL;
 
             const admSel = document.getElementById('admAddServerSelect');
             if (admSel) admSel.value = activeServerId;
 
             const admServerLabel = document.getElementById('admCurrentServerLabel');
-            if (admServerLabel) admServerLabel.textContent = `Server ${activeServerId}`;
+            if (admServerLabel) admServerLabel.textContent = `All Slots`;
 
             loadAdminStats();
         }
@@ -2271,44 +2387,50 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
             if (tab === 'accounts') loadAdminStats();
         }
 
-        function saveServerUrls() {
-            const s1 = document.getElementById('admServer1UrlInput').value.trim();
-            const s2 = document.getElementById('admServer2UrlInput').value.trim();
-            const s3 = document.getElementById('admServer3UrlInput').value.trim();
+        function saveBackendUrl() {
+            const inp = document.getElementById('admBackendUrlInput');
+            const val = (inp ? inp.value : '').trim();
+            if (val) {
+                BACKEND_URL = val;
+                localStorage.setItem('nomad_backend_url', val);
+                showToast('Saved Backend URL');
+                loadAvailableGmails();
+            }
+        }
 
-            if (s1) localStorage.setItem('nomad_server_1_url', s1);
-            if (s2) localStorage.setItem('nomad_server_2_url', s2);
-            if (s3) localStorage.setItem('nomad_server_3_url', s3);
-
-            BACKEND_URL = getServerUrl(activeServerId);
-            showToast('Saved all server configurations');
-            switchAdminTab('accounts');
+        async function admChangeAccountSlot(email, newSlot) {
+            setLocalAccountSlot(email, newSlot);
+            showToast(`${email} assigned to Server ${newSlot}`);
+            try {
+                await fetch(BACKEND_URL + '/api/admin/gmail-accounts/set-server-slot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-secret': adminSecret
+                    },
+                    body: JSON.stringify({ account: email, server_slot: parseInt(newSlot) || 1 })
+                });
+            } catch (e) { }
             loadAvailableGmails();
         }
 
         async function loadAdminStats() {
             const tbody = document.getElementById('admAccountsTbody');
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
-
-            const targetUrl = getServerUrl(activeServerId);
-            if (!targetUrl) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#FDA4AF;">Server URL not configured</td></tr>';
-                return;
-            }
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
 
             try {
-                const r = await fetch(targetUrl + '/api/admin/gmail-accounts/stats', {
+                const r = await fetch(BACKEND_URL + '/api/admin/gmail-accounts/stats', {
                     headers: { 'x-admin-secret': adminSecret }
                 });
                 const data = await r.json();
 
                 if (!data.ok || !data.stats) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#FDA4AF;">Failed to load accounts</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#FDA4AF;">Failed to load accounts</td></tr>';
                     return;
                 }
 
                 if (!data.stats.length) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:14px;">No accounts on this server. Add one via "+ Add Gmail".</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:14px;">No accounts in database. Add one via "+ Add Gmail".</td></tr>';
                     return;
                 }
 
@@ -2317,29 +2439,38 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
                         ? '<span style="color:#6EE7B7;font-weight:700;">&check; Linked</span>'
                         : `<button onclick="admLinkAccount('${escHtml(s.email)}')" class="tag-btn-copy">Link</button>`;
 
+                    const slot = getAccountServerSlot(s);
+
                     return `
                         <tr>
                             <td><strong>${escHtml(s.email)}</strong></td>
+                            <td>
+                                <select class="adm-text-input" style="padding:4px 8px;font-size:0.75rem;width:auto;cursor:pointer;" onchange="admChangeAccountSlot('${escHtml(s.email)}', this.value)">
+                                    <option value="1" ${slot === '1' ? 'selected' : ''}>&#128274; Server 1</option>
+                                    <option value="2" ${slot === '2' ? 'selected' : ''}>Server 2</option>
+                                    <option value="3" ${slot === '3' ? 'selected' : ''}>Server 3</option>
+                                </select>
+                            </td>
                             <td>${statusBadge}</td>
                             <td>${s.used_variants} / ${s.total_variants}</td>
                             <td>${s.used_today ? '<span style="color:#FDA4AF;">Used</span>' : '<span style="color:#6EE7B7;">1/1</span>'}</td>
                             <td>
-<button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-mini-tool" style="margin-right:4px;">Reset</button>
-<button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-mini-tool" style="color:#FDA4AF;">Del</button>
+                                <button onclick="admResetDaily('${escHtml(s.email)}')" class="btn-mini-tool" style="margin-right:4px;">Reset</button>
+                                <button onclick="admDeleteAccount('${escHtml(s.email)}')" class="btn-mini-tool" style="color:#FDA4AF;">Del</button>
                             </td>
                         </tr>
                     `;
                 }).join('');
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Error communicating with server</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Error communicating with server</td></tr>';
             }
         }
 
         function admLinkAccount(email) {
-            const targetUrl = getServerUrl(activeServerId);
-            showToast('Redirecting to Google Sign-In...');
+            const slot = getAccountServerSlot(email);
+            showToast(`Redirecting to Google for Server ${slot}...`);
             const returnUrl = window.location.origin + window.location.pathname;
-            const loginUrl = `${targetUrl}/auth/login?account=${encodeURIComponent(email || '')}&return_to=${encodeURIComponent(returnUrl)}`;
+            const loginUrl = `${BACKEND_URL}/auth/login?account=${encodeURIComponent(email || '')}&server_slot=${encodeURIComponent(slot)}&return_to=${encodeURIComponent(returnUrl)}`;
             setTimeout(() => {
                 window.location.href = loginUrl;
             }, 300);
@@ -2351,18 +2482,12 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
             const visibleCheckbox = document.getElementById('admNewGmailVisible');
             const visible = visibleCheckbox ? visibleCheckbox.checked : true;
 
-            const selectedServerId = document.getElementById('admAddServerSelect') ? document.getElementById('admAddServerSelect').value : activeServerId;
-            const targetServerUrl = getServerUrl(selectedServerId);
-
-            if (!targetServerUrl) {
-                alert(`Server ${selectedServerId} URL is not set. Please enter it in Server URLs tab.`);
-                switchAdminTab('config');
-                return;
-            }
+            const selectedServerSlot = document.getElementById('admAddServerSelect') ? document.getElementById('admAddServerSelect').value : activeServerId;
 
             if (email && email.includes('@')) {
+                setLocalAccountSlot(email, selectedServerSlot);
                 try {
-                    await fetch(targetServerUrl + '/api/admin/gmail-accounts/add', {
+                    await fetch(BACKEND_URL + '/api/admin/gmail-accounts/add', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -2373,9 +2498,9 @@ style="width:15px;height:15px;accent-color:var(--crimson);" />
                 } catch (e) { }
             }
 
-            showToast(`Redirecting to Google on Server ${selectedServerId}...`);
+            showToast(`Redirecting to Google for Server ${selectedServerSlot}...`);
             const returnUrl = window.location.origin + window.location.pathname;
-            const loginUrl = `${targetServerUrl}/auth/login?account=${encodeURIComponent(email)}&return_to=${encodeURIComponent(returnUrl)}`;
+            const loginUrl = `${BACKEND_URL}/auth/login?account=${encodeURIComponent(email)}&server_slot=${encodeURIComponent(selectedServerSlot)}&return_to=${encodeURIComponent(returnUrl)}`;
             setTimeout(() => {
                 window.location.href = loginUrl;
             }, 300);

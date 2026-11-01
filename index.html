@@ -2276,7 +2276,7 @@
                         <div class="card-row-top">
                             <span class="card-label"><span class="step">2</span>Your email</span>
                             <div class="quota-badges">
-                                <span id="dailyLimitStatusLabel" style="color:#6EE7B7;">Ready (1/1 today)</span>
+                                <span id="dailyLimitStatusLabel" style="color:#6EE7B7;">Ready (1 per 24h)</span>
                                 <span class="pill-stat" id="dotVariantsStat">-- / --</span>
                                 <span style="display:none;" id="aliasCountPill"></span>
                             </div>
@@ -2417,7 +2417,7 @@
                             stroke-width="2.4">
                             <circle cx="12" cy="12" r="10" />
                             <polyline points="12 6 12 12 16 14" />
-                        </svg>Limit resets 12:00 AM</li>
+                        </svg>1 email per Gmail every 24h</li>
                 </ul>            </div>
         </div>
 
@@ -2485,7 +2485,7 @@
                                         <th>Server Slot</th>
                                         <th>Status</th>
                                         <th>Used</th>
-                                        <th>Today</th>
+                                        <th>24h Limit</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -2728,6 +2728,7 @@
         -------------------------------------------------------- */
         window.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('footYear').textContent = new Date().getFullYear();
+            try { localStorage.removeItem('nomad_daily_usage'); } catch (e) { }
             syncServerUI();
 
             // Gmail picker: event delegation
@@ -2834,11 +2835,34 @@
 
         let gmailCache = [];
         let allUsedToday = false;
+        let nextUnlockMs = 0;
 
-        /* Local calendar day, so the daily limit resets at 12:00 AM local time */
-        function todayKey() {
-            const d = new Date();
-            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        /* ---- The 24-hour limit is owned by the BACKEND (database). The browser only displays it. ----
+           Lock timers are computed from the server's "retry_after_seconds", so a wrong phone clock cannot unlock anything. */
+        function lockRemainingMs(a) { return a && a._lockUntil ? a._lockUntil - Date.now() : 0; }
+        function isLocked(a) { return lockRemainingMs(a) > 0; }
+        function fmtRemaining(ms) {
+            const mins = Math.max(1, Math.ceil(ms / 60000));
+            const h = Math.floor(mins / 60), m = mins % 60;
+            return h ? (m ? `${h}h ${m}m` : `${h}h`) : `${m}m`;
+        }
+        function stampLocks(accounts) {
+            const now = Date.now();
+            accounts.forEach(a => { a._lockUntil = a.locked ? now + (Number(a.retry_after_seconds) || 0) * 1000 : 0; });
+        }
+        function getCurrentAccount() { return gmailCache.find(a => a.email === currentBaseGmail) || null; }
+        function saveAcctCache() { try { localStorage.setItem('nomad_gmail_cache', JSON.stringify(gmailCache)); } catch (e) { } }
+
+        /* Quiet re-sync of limits/usage from the backend (no loading flicker) */
+        async function refreshGmailStatus() {
+            try {
+                const accounts = await fetchGmailAccounts();
+                if (!accounts.length) return;
+                stampLocks(accounts);
+                gmailCache = accounts;
+                saveAcctCache();
+                renderGmailOptions();
+            } catch (e) { }
         }
 
         /* ---------- In-page Gmail picker ---------- */
@@ -2915,8 +2939,9 @@
                 return;
             }
 
-            try { localStorage.setItem('nomad_gmail_cache', JSON.stringify(accounts)); } catch (e) { }
+            stampLocks(accounts);
             gmailCache = accounts;
+            saveAcctCache();
             renderGmailOptions();
         }
 
@@ -2937,16 +2962,16 @@
                 return;
             }
 
-            const today = todayKey();
-            const usage = getDailyUsageMap();
-            const rows = accounts.map((a, i) => ({ email: a.email, n: i + 1, used: usage[a.email] === today }));
+            const rows = accounts.map((a, i) => ({ email: a.email, n: i + 1, used: isLocked(a), left: lockRemainingMs(a) }));
             const visible = rows.filter(x => !x.used || (x.email === currentBaseGmail && currentAlias));
             const usedCount = rows.filter(x => x.used).length;
+            const lockedLefts = rows.filter(x => x.used).map(x => x.left);
+            nextUnlockMs = lockedLefts.length ? Math.min(...lockedLefts) : 0;
 
             if (!visible.length) {
-                list.innerHTML = acctEmptyHtml(`All ${accounts.length} Gmails used today`, 'Limits reset at 12:00 AM.');
+                list.innerHTML = acctEmptyHtml(`All ${accounts.length} Gmails are locked`, `Next one is available in ${fmtRemaining(nextUnlockMs)}.`);
                 foot.innerHTML = '';
-                setAcctHead(`All ${accounts.length} used today`, 'Resets at 12:00 AM');
+                setAcctHead(`All ${accounts.length} locked`, `Next available in ${fmtRemaining(nextUnlockMs)}`);
                 allUsedToday = true;
                 updateDailyLimitUI();
                 return;
@@ -2975,7 +3000,7 @@
             }).join('');
 
             foot.innerHTML = usedCount
-                ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${usedCount} used today · resets 12 AM`
+                ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${usedCount} locked · next in ${fmtRemaining(nextUnlockMs)}`
                 : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="20 6 9 17 4 12"/></svg>All ${accounts.length} accounts available`;
 
             setAcctHead(currentBaseGmail, `${visible.length} of ${accounts.length} available`);
@@ -3022,123 +3047,138 @@
             closeAcct();
         }
 
-        /* Refresh the list at local midnight and whenever the tab becomes visible again */
-        function scheduleMidnightRefresh() {
-            const now = new Date();
-            const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1);
-            setTimeout(() => {
-                if (gmailCache.length) renderGmailOptions();
-                updateDailyLimitUI();
-                scheduleMidnightRefresh();
-            }, next - now);
-        }
-        scheduleMidnightRefresh();
+        /* Re-check lock timers every 20s; re-sync from the backend when one expires or the tab returns */
+        setInterval(() => {
+            if (!gmailCache.length) return;
+            let expired = false;
+            gmailCache.forEach(a => {
+                if (a._lockUntil && a._lockUntil <= Date.now()) { a._lockUntil = 0; a.locked = false; expired = true; }
+            });
+            if (expired) { renderGmailOptions(); refreshGmailStatus(); }
+            else updateDailyLimitUI();
+        }, 20000);
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && gmailCache.length) renderGmailOptions();
+            if (!document.hidden) refreshGmailStatus();
         });
 
-        function getDailyUsageMap() {
-            try {
-                return JSON.parse(localStorage.getItem('nomad_daily_usage') || '{}');
-            } catch (e) {
-                return {};
-            }
-        }
-
-        function isCurrentAccountUsedToday() {
-            if (!currentBaseGmail) return false;
-            const todayStr = todayKey();
-            const map = getDailyUsageMap();
-            return map[currentBaseGmail] === todayStr;
-        }
-
-        function markAccountUsedToday(account) {
-            const todayStr = todayKey();
-            const map = getDailyUsageMap();
-            map[account] = todayStr;
-            localStorage.setItem('nomad_daily_usage', JSON.stringify(map));
-            updateDailyLimitUI();
-        }
-
         function updateDailyLimitUI() {
-            const isUsed = isCurrentAccountUsedToday();
+            const acct = getCurrentAccount();
             const btn = document.getElementById('btnGenAlias');
             const label = document.getElementById('btnGenLabel');
             const statusLabel = document.getElementById('dailyLimitStatusLabel');
 
-            if (isUsed || allUsedToday) {
+            if (allUsedToday) {
                 btn.disabled = true;
-                label.textContent = allUsedToday ? 'All Gmails used · resets at 12 AM' : 'Daily Limit Reached (1/1)';
-                statusLabel.innerHTML = '<span style="color:#FDA4AF;">Used Today (1/1)</span>';
+                label.textContent = `All Gmails locked · next in ${fmtRemaining(nextUnlockMs)}`;
+                statusLabel.innerHTML = '<span style="color:#FDA4AF;">Locked (1 per 24h)</span>';
+            } else if (isLocked(acct)) {
+                btn.disabled = true;
+                label.textContent = `Available in ${fmtRemaining(lockRemainingMs(acct))}`;
+                statusLabel.innerHTML = '<span style="color:#FDA4AF;">Locked (1 per 24h)</span>';
+            } else if (acct && acct.exhausted) {
+                btn.disabled = true;
+                label.textContent = 'All Emails Used';
+                statusLabel.innerHTML = '<span style="color:#FDA4AF;">Exhausted</span>';
             } else {
                 btn.disabled = false;
                 label.textContent = 'Generate New Email';
-                statusLabel.innerHTML = '<span style="color:#6EE7B7;">Ready (1/1 today)</span>';
+                statusLabel.innerHTML = '<span style="color:#6EE7B7;">Ready (1 per 24h)</span>';
             }
         }
 
+        /* Record a lock the backend just told us about (429 or successful generation) */
+        function applyLock(gmail, seconds, extra) {
+            const a = gmailCache.find(x => x.email === gmail);
+            if (!a) return;
+            a.locked = true;
+            a._lockUntil = Date.now() + (Number(seconds) || 86400) * 1000;
+            if (extra) {
+                if (extra.remaining_variants !== undefined) a.remaining_variants = extra.remaining_variants;
+                if (extra.used_count !== undefined) a.used_count = extra.used_count;
+                if (extra.total_variants !== undefined) a.total_variants = extra.total_variants;
+            }
+            saveAcctCache();
+        }
+
+        /* Generation happens ONLY on the backend: it checks the 24h limit and records the email in the database. */
         async function onGenerateAliasClick() {
             if (!currentBaseGmail) {
                 showToast('Please select a Gmail account first');
                 return;
             }
 
-            if (isCurrentAccountUsedToday()) {
-                showToast('Daily limit reached for this Gmail');
+            const acct = getCurrentAccount();
+            if (isLocked(acct)) {
+                showToast(`Locked. Available in ${fmtRemaining(lockRemainingMs(acct))}`);
                 return;
             }
 
+            const gmail = currentBaseGmail;
             const btn = document.getElementById('btnGenAlias');
             const label = document.getElementById('btnGenLabel');
             btn.disabled = true;
             label.textContent = 'Generating...';
 
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 40000);
             try {
-                const atIdx = currentBaseGmail.indexOf('@');
-                const rawUser = atIdx !== -1 ? currentBaseGmail.slice(0, atIdx).replace(/\./g, '') : currentBaseGmail;
-                const domain = atIdx !== -1 ? currentBaseGmail.slice(atIdx) : '@gmail.com';
+                const r = await fetch(BACKEND_URL + '/api/generate-alias', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gmail_account: gmail }),
+                    signal: ctrl.signal
+                });
+                let data = {};
+                try { data = await r.json(); } catch (e) { }
 
-                const variants = generateMax2DotVariants(rawUser);
-                const totalVariants = variants.length;
-
-                const { data: usedRows } = await sb
-                    .from('allowed_emails')
-                    .select('email')
-                    .eq('gmail_account', currentBaseGmail);
-
-                const usedSet = new Set((usedRows || []).map(r => r.email.toLowerCase()));
-                const available = variants.map(v => v + domain).filter(e => !usedSet.has(e.toLowerCase()));
-
-                if (available.length === 0) {
-                    showToast(`All ${totalVariants} emails used for this account`);
-                    btn.disabled = true;
-                    label.textContent = 'All Emails Used';
+                if (r.status === 429 && data.daily_limit) {
+                    applyLock(gmail, data.retry_after_seconds);
+                    showToast(`Limit reached. Available in ${fmtRemaining((Number(data.retry_after_seconds) || 86400) * 1000)}`);
+                    renderGmailOptions();
+                    return;
+                }
+                if (r.status === 429) {
+                    showToast('Already generating, please wait');
+                    return;
+                }
+                if (r.status === 410) {
+                    const a = gmailCache.find(x => x.email === gmail);
+                    if (a) { a.exhausted = true; a.remaining_variants = 0; saveAcctCache(); }
+                    showToast('All emails used for this Gmail');
+                    renderGmailOptions();
+                    return;
+                }
+                if (!r.ok || !data.ok || !data.alias) {
+                    showToast(data.error || 'Could not generate an email. Please try again.');
                     return;
                 }
 
-                const chosenAlias = available[Math.floor(Math.random() * available.length)];
+                applyLock(gmail, data.retry_after_seconds, data);
 
-                await sb.from('allowed_emails').insert({
-                    email: chosenAlias.toLowerCase(),
-                    gmail_account: currentBaseGmail.toLowerCase(),
-                    created_at: new Date().toISOString()
-                });
+                if (gmail !== currentBaseGmail) {
+                    // You switched Gmail while it was generating: it is saved, just don't mix up the screen
+                    autoCopyText(data.alias, 'New email');
+                    renderGmailOptions();
+                    return;
+                }
 
-                markAccountUsedToday(currentBaseGmail);
-
-                currentAlias = chosenAlias;
-                localStorage.setItem('nomad_active_alias', chosenAlias);
+                currentAlias = data.alias;
+                localStorage.setItem('nomad_active_alias', data.alias);
 
                 resetCapturedState();
-                updateActiveAliasUI(chosenAlias);
-                subscribeToAlias(chosenAlias);
+                updateActiveAliasUI(data.alias);
+                subscribeToAlias(data.alias);
                 renderEmptyStream();
 
-                autoCopyText(chosenAlias, 'New email');
-                calculateDotStats(currentBaseGmail);
+                autoCopyText(data.alias, 'New email');
                 renderGmailOptions();
+                refreshGmailStatus();   // re-sync counts and locks with the database
             } catch (err) {
-                showToast('Error: ' + err.message);
+                showToast(err && err.name === 'AbortError'
+                    ? 'Server is slow or waking up. Try again in a moment.'
+                    : 'Could not reach the server. Nothing was generated.');
+            } finally {
+                clearTimeout(timer);
                 updateDailyLimitUI();
             }
         }
@@ -3162,53 +3202,17 @@
             autoCopyText(currentAlias, 'Email');
         }
 
-        function calculateMax2DotCount(username) {
-            const clean = username.toLowerCase().replace(/\./g, '');
-            const n = clean.length;
-            if (n < 2) return 0;
-            return (n - 1) + (((n - 1) * (n - 2)) / 2);
-        }
-
-        async function calculateDotStats(gmail) {
+        /* "N left" comes from the backend's database count (via /api/public/gmail-accounts) */
+        function calculateDotStats(gmail) {
             if (!gmail) return;
-            const atIdx = gmail.indexOf('@');
-            const user = atIdx !== -1 ? gmail.slice(0, atIdx).replace(/\./g, '') : gmail;
-            const totalPossible = calculateMax2DotCount(user);
-            const stillCurrent = () => gmail === currentBaseGmail;
-
-            try {
-                const { count } = await sb
-                    .from('allowed_emails')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('gmail_account', gmail);
-
-                if (!stillCurrent()) return;
-                const used = count || 0;
-                const remaining = Math.max(0, totalPossible - used);
-
-                document.getElementById('dotVariantsStat').textContent = `${remaining} left`;
-                document.getElementById('aliasCountPill').textContent = `${remaining}`;
-            } catch (e) {
-                if (!stillCurrent()) return;
-                document.getElementById('dotVariantsStat').textContent = `${totalPossible} total`;
+            const a = gmailCache.find(x => x.email === gmail);
+            const stat = document.getElementById('dotVariantsStat');
+            if (a && a.remaining_variants !== null && a.remaining_variants !== undefined) {
+                stat.textContent = `${a.remaining_variants} left`;
+                document.getElementById('aliasCountPill').textContent = `${a.remaining_variants}`;
+            } else {
+                stat.textContent = '-- / --';
             }
-        }
-
-        function generateMax2DotVariants(username) {
-            const clean = username.toLowerCase().replace(/\./g, '');
-            const n = clean.length;
-            if (n < 2) return [clean];
-
-            const variants = [];
-            for (let i = 1; i < n; i++) {
-                variants.push(clean.slice(0, i) + '.' + clean.slice(i));
-            }
-            for (let i = 1; i < n; i++) {
-                for (let j = i + 1; j < n; j++) {
-                    variants.push(clean.slice(0, i) + '.' + clean.slice(i, j) + '.' + clean.slice(j));
-                }
-            }
-            return variants;
         }
 
         function subscribeToAlias(alias) {
@@ -3318,6 +3322,14 @@
 
             const isEsimMail = /LPA:1\$|SM-DP\+?|activation\s*code/i.test(combined);
             if (KW.test(combined) && !isEsimMail) {
+                // 3b. Letter / mixed codes (e.g. GNKU, A7K9QZ): caps next to "code" or alone on a line
+                const STOP = /^(NOMAD|ESIM|CODE|VERIFY|EMAIL|HELLO|THANKS|THANK|NOTE|SUPPORT|TEAM|HTTPS?|NONE|ONLY)$/;
+                const alphaKw = combined.match(/(?:code|otp|passcode|pin)\s*(?:is|:|=)\s*[:\s]*([A-Z0-9]{4,8})\b/);
+                if (alphaKw && !STOP.test(alphaKw[1]) && /[A-Z]/.test(alphaKw[1])) return alphaKw[1];
+                for (const line of cleanBody.split('\n')) {
+                    const t = line.trim().replace(/^["'“‘\[(]+|["'”’\]).,]+$/g, '');
+                    if (/^[A-Z0-9]{4,8}$/.test(t) && /[A-Z]/.test(t) && !STOP.test(t)) return t;
+                }
                 // 4. A number sitting alone on its own line / in its own element (typical OTP layout)
                 for (const line of cleanBody.split('\n')) {
                     const m = line.trim().match(/^(\d{4,8})$/) || line.trim().match(/^(\d{3})[\s-](\d{3})$/);
@@ -3870,7 +3882,7 @@
                             </td>
                             <td>${statusBadge}</td>
                             <td><span class="adm-stat-pill">${s.used_variants} / ${s.total_variants}</span></td>
-                            <td>${s.used_today ? '<span class="adm-badge-used">Used</span>' : '<span class="adm-badge-avail">1/1</span>'}</td>
+                            <td>${s.locked ? `<span class="adm-badge-used">${fmtRemaining((Number(s.retry_after_seconds) || 0) * 1000)}</span>` : '<span class="adm-badge-avail">1/1</span>'}</td>
                             <td>
                                 <div style="display:flex;gap:4px;align-items:center;">
                                     <button onclick="admResetDaily('${escHtml(s.email)}')" class="adm-icon-btn" title="Reset Today's Limit">
@@ -3936,9 +3948,9 @@
         }
 
         async function admResetDaily(account) {
-            if (!confirm(`Reset today's daily generation limit for ${account}?`)) return;
+            if (!confirm(`Clear the 24-hour limit for ${account}? (removes its emails generated in the last 24h)`)) return;
             try {
-                await fetch(BACKEND_URL + '/api/admin/gmail-accounts/reset-daily', {
+                const r = await fetch(BACKEND_URL + '/api/admin/gmail-accounts/reset-daily', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -3946,12 +3958,10 @@
                     },
                     body: JSON.stringify({ account })
                 });
-                const map = getDailyUsageMap();
-                delete map[account];
-                localStorage.setItem('nomad_daily_usage', JSON.stringify(map));
-                updateDailyLimitUI();
+                const d = await r.json().catch(() => ({}));
+                if (!r.ok || !d.ok) { showToast(d.error || 'Failed to reset limit'); return; }
+                await refreshGmailStatus();
                 loadAdminStats();
-                if (gmailCache.length) renderGmailOptions();
                 showToast(`Reset limit for ${account}`);
             } catch (e) {
                 showToast('Failed to reset daily limit');

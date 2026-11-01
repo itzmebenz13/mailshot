@@ -1709,12 +1709,34 @@ app.get('/api/public/gmail-accounts', async function (req, res) {
     });
 
     const result = active.length > 0 ? active : visibleAccounts;
+
+    // Limit/usage status comes from the database, never from the browser
+    let usage = {};
+    let usageError = false;
+    try {
+      usage = await getAccountUsage(result.map(a => a.email));
+    } catch (usageErr) {
+      usageError = true;
+      console.error('/api/public/gmail-accounts usage error:', usageErr.message || usageErr);
+    }
+
     return res.json({
       ok: true,
-      accounts: result.map(a => ({
-        email: a.email,
-        server_slot: (a.tokens && a.tokens.server_slot) ? parseInt(a.tokens.server_slot) : 1
-      }))
+      usage_error: usageError,
+      accounts: result.map(a => {
+        const u = usage[(a.email || '').toLowerCase()] || {};
+        return {
+          email: a.email,
+          server_slot: (a.tokens && a.tokens.server_slot) ? parseInt(a.tokens.server_slot) : 1,
+          locked: !!u.locked,
+          available_at: u.available_at || null,
+          retry_after_seconds: u.retry_after_seconds || 0,
+          used_count: u.used_count || 0,
+          total_variants: u.total_variants || 0,
+          remaining_variants: u.remaining_variants === undefined ? null : u.remaining_variants,
+          exhausted: !!u.exhausted
+        };
+      })
     });
   } catch (e) {
     console.error('/api/public/gmail-accounts error:', e.message);
@@ -1793,11 +1815,90 @@ function generateMax2DotVariants(username) {
  * Body: { gmail_account: "email@gmail.com" }
  * Returns: { ok: true, alias: "e.x.ample@gmail.com", ... }
  */
+// ════════════════════════════════════════════════════════════
+// ── 24-HOUR GENERATION LIMIT (enforced ONLY here, never in the browser) ──
+// Each Gmail account may generate 1 alias per rolling 24 hours. The clock
+// starts at the created_at of its newest row in allowed_emails, so the
+// limit holds across browsers, devices, sessions and cleared storage.
+// ════════════════════════════════════════════════════════════
+const GENERATION_WINDOW_MS = 24 * 60 * 60 * 1000;
+const _generateLocks = new Set(); // in-process guard against double-clicks / parallel requests
+
+/**
+ * Usage + lock status for a list of Gmail accounts, straight from the database.
+ * Returns { [email]: { used_count, total_variants, remaining_variants, exhausted,
+ *                      locked, last_generated_at, available_at, retry_after_seconds } }
+ * Throws if the database cannot be read (callers must fail closed).
+ */
+async function getAccountUsage(emails) {
+  const list = [...new Set((emails || []).map(e => (e || '').trim().toLowerCase()))].filter(Boolean);
+  const out = {};
+  if (!list.length) return out;
+
+  const nowMs = Date.now();
+  const since = new Date(nowMs - GENERATION_WINDOW_MS).toISOString();
+
+  const [recent, counts] = await Promise.all([
+    supabase.from('allowed_emails')
+      .select('gmail_account, created_at')
+      .in('gmail_account', list)
+      .gte('created_at', since)
+      .order('created_at', { ascending: false }),
+    Promise.all(list.map(e =>
+      supabase.from('allowed_emails').select('*', { count: 'exact', head: true }).eq('gmail_account', e)
+    ))
+  ]);
+  if (recent.error) throw recent.error;
+
+  const latest = {};
+  for (const r of (recent.data || [])) {
+    const k = (r.gmail_account || '').toLowerCase();
+    const t = new Date(r.created_at).getTime();
+    if (!latest[k] || t > latest[k]) latest[k] = t;
+  }
+
+  list.forEach((email, i) => {
+    if (counts[i].error) throw counts[i].error;
+    const atIdx = email.indexOf('@');
+    const user = atIdx !== -1 ? email.slice(0, atIdx).replace(/\./g, '') : email;
+    const total = generateMax2DotVariants(user).length;
+    const used = counts[i].count || 0;
+    const lastMs = latest[email] || 0;
+    const availableMs = lastMs ? lastMs + GENERATION_WINDOW_MS : 0;
+    const locked = availableMs > nowMs;
+    out[email] = {
+      used_count: used,
+      total_variants: total,
+      remaining_variants: Math.max(0, total - used),
+      exhausted: total > 0 && used >= total,
+      locked,
+      last_generated_at: lastMs ? new Date(lastMs).toISOString() : null,
+      available_at: locked ? new Date(availableMs).toISOString() : null,
+      retry_after_seconds: locked ? Math.ceil((availableMs - nowMs) / 1000) : 0
+    };
+  });
+  return out;
+}
+
+/**
+ * POST /api/generate-alias
+ * Body: { gmail_account: "email@gmail.com" }
+ * The ONLY way an alias is created. Enforces: account exists + visible,
+ * 1 alias per Gmail per rolling 24h, max-2-dot variants, no duplicates.
+ */
 app.post('/api/generate-alias', async function (req, res) {
+  let lockKey = '';
   try {
     const gmailAccount = (req.body.gmail_account || '').trim().toLowerCase();
-    const isAdmin = req.headers['x-admin-secret'] === (process.env.ADMIN_SECRET || 'SM-2026');
+    // Admin bypass only works when ADMIN_SECRET is really configured (no built-in default)
+    const isAdmin = !!process.env.ADMIN_SECRET && req.headers['x-admin-secret'] === process.env.ADMIN_SECRET;
     if (!gmailAccount) return res.status(400).json({ ok: false, error: 'Missing gmail_account' });
+
+    if (_generateLocks.has(gmailAccount)) {
+      return res.status(429).json({ ok: false, busy: true, error: 'A generation for this Gmail is already in progress.' });
+    }
+    _generateLocks.add(gmailAccount);
+    lockKey = gmailAccount;
 
     // ── Verify account exists and is visible ──
     const { data: accData, error: accErr } = await supabase
@@ -1828,21 +1929,30 @@ app.post('/api/generate-alias', async function (req, res) {
       .select('email, created_at')
       .eq('gmail_account', gmailAccount);
 
+    // Fail closed: if we cannot read usage we must not hand out an alias
+    if (existingErr) {
+      console.error('generate-alias usage read error:', existingErr);
+      return res.status(500).json({ ok: false, error: 'Could not verify usage. Please try again.' });
+    }
+
     const usedRows = existingRows || [];
     const usedSet = new Set(usedRows.map(r => r.email.toLowerCase()));
 
-    // ── Daily Generation Limit Check (1 per day per Gmail account) ──
-    const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
-    const usedToday = usedRows.some(r => {
-      if (!r.created_at) return false;
-      return new Date(r.created_at).toISOString().slice(0, 10) === todayStr;
-    });
-
-    if (usedToday && !isAdmin) {
+    // ── Rolling 24-hour limit (1 per Gmail account) ──
+    const nowMs = Date.now();
+    let latestMs = 0;
+    for (const r of usedRows) {
+      const t = r.created_at ? new Date(r.created_at).getTime() : 0;
+      if (t > latestMs) latestMs = t;
+    }
+    const availableMs = latestMs ? latestMs + GENERATION_WINDOW_MS : 0;
+    if (availableMs > nowMs && !isAdmin) {
       return res.status(429).json({
         ok: false,
         daily_limit: true,
-        error: `Daily limit reached for ${gmailAccount}. You can only generate 1 alias per Gmail per day. Available again tomorrow.`
+        available_at: new Date(availableMs).toISOString(),
+        retry_after_seconds: Math.ceil((availableMs - nowMs) / 1000),
+        error: `Limit reached for ${gmailAccount}. Only 1 alias per Gmail every 24 hours.`
       });
     }
 
@@ -1861,13 +1971,13 @@ app.post('/api/generate-alias', async function (req, res) {
     }
 
     // Pick a random variant from the remaining available pool
-    const randomIndex = Math.floor(Math.random() * availableVariants.length);
-    const chosenAlias = availableVariants[randomIndex];
+    const chosenAlias = availableVariants[Math.floor(Math.random() * availableVariants.length)];
 
-    // ── Save to allowed_emails ──
+    // ── Save to allowed_emails (created_at set explicitly: it IS the limit clock) ──
+    const createdAt = new Date(nowMs).toISOString();
     const { error: insertErr } = await supabase
       .from('allowed_emails')
-      .insert({ email: chosenAlias, gmail_account: gmailAccount });
+      .insert({ email: chosenAlias, gmail_account: gmailAccount, created_at: createdAt });
 
     if (insertErr) {
       console.error('generate-alias insert error:', insertErr);
@@ -1881,11 +1991,15 @@ app.post('/api/generate-alias', async function (req, res) {
       gmail_account: gmailAccount,
       remaining_variants: availableVariants.length - 1,
       total_variants: allVariants.length,
-      used_count: usedSet.size + 1
+      used_count: usedSet.size + 1,
+      available_at: new Date(nowMs + GENERATION_WINDOW_MS).toISOString(),
+      retry_after_seconds: Math.floor(GENERATION_WINDOW_MS / 1000)
     });
   } catch (e) {
     console.error('generate-alias error:', e.message);
     return res.status(500).json({ ok: false, error: e.message });
+  } finally {
+    if (lockKey) _generateLocks.delete(lockKey);
   }
 });
 
@@ -1905,21 +2019,10 @@ app.get('/api/admin/gmail-accounts/stats', requireAdminSecret, async function (r
 
     if (accErr) return res.status(500).json({ ok: false, error: accErr.message });
 
-    const { data: allowed, error: allErr } = await supabase
-      .from('allowed_emails')
-      .select('email, gmail_account, created_at');
+    const usage = await getAccountUsage((accounts || []).map(a => a.email));
 
-    const todayStr = new Date().toISOString().slice(0, 10);
     const stats = (accounts || []).map(acc => {
-      const atIdx = acc.email.indexOf('@');
-      const user = atIdx !== -1 ? acc.email.slice(0, atIdx).replace(/\./g, '') : acc.email;
-      const allVars = generateMax2DotVariants(user);
-      const totalVariants = allVars.length;
-
-      const accAliases = (allowed || []).filter(r => (r.gmail_account || '').toLowerCase() === acc.email.toLowerCase());
-      const usedCount = accAliases.length;
-      const usedToday = accAliases.some(r => r.created_at && new Date(r.created_at).toISOString().slice(0, 10) === todayStr);
-
+      const u = usage[(acc.email || '').toLowerCase()] || {};
       const hasTokens = Boolean(acc.tokens && (acc.tokens.access_token || acc.tokens.refresh_token));
 
       return {
@@ -1927,11 +2030,14 @@ app.get('/api/admin/gmail-accounts/stats', requireAdminSecret, async function (r
         visible: acc.visible !== false,
         authenticated: hasTokens,
         watch_active: acc.watch_expiry ? new Date(acc.watch_expiry) > new Date() : false,
-        total_variants: totalVariants,
-        used_variants: usedCount,
-        remaining_variants: Math.max(0, totalVariants - usedCount),
-        exhausted: totalVariants > 0 && usedCount >= totalVariants,
-        used_today: usedToday,
+        total_variants: u.total_variants || 0,
+        used_variants: u.used_count || 0,
+        remaining_variants: u.remaining_variants || 0,
+        exhausted: !!u.exhausted,
+        used_today: !!u.locked,           // kept for compatibility: now means "locked (within 24h)"
+        locked: !!u.locked,
+        available_at: u.available_at || null,
+        retry_after_seconds: u.retry_after_seconds || 0,
         added_at: acc.added_at,
         server_slot: (acc.tokens && acc.tokens.server_slot) ? parseInt(acc.tokens.server_slot) : 1
       };
@@ -2005,19 +2111,19 @@ app.post('/api/admin/gmail-accounts/add', requireAdminSecret, async function (re
 /**
  * POST /api/admin/gmail-accounts/reset-daily
  * Body: { account: "user@gmail.com" }
- * Resets today's daily generation limit for testing.
+ * Clears the last 24h of generated aliases so the Gmail is unlocked again.
  */
 app.post('/api/admin/gmail-accounts/reset-daily', requireAdminSecret, async function (req, res) {
   try {
     const account = (req.body.account || '').trim().toLowerCase();
     if (!account) return res.status(400).json({ ok: false, error: 'Missing account' });
 
-    const todayStart = new Date().toISOString().slice(0, 10) + 'T00:00:00.000Z';
+    const windowStart = new Date(Date.now() - GENERATION_WINDOW_MS).toISOString();
     const { error } = await supabase
       .from('allowed_emails')
       .delete()
       .eq('gmail_account', account)
-      .gte('created_at', todayStart);
+      .gte('created_at', windowStart);
 
     if (error) return res.status(500).json({ ok: false, error: error.message });
     return res.json({ ok: true, message: `Reset daily generation limit for ${account}` });
